@@ -5,9 +5,10 @@ Plugin Name: Hexydec HTML Minifier
 Plugin URI:  https://github.com/hexydec/htmldoc
 Description: Minify your HTML output and any inline CSS/Javascript. Uses custom written HTML/CSS/JS compilers to produce reliable minification, designed with performance in mind. <a href="https://hexydec.com/htmldoc/" target="_blank">Try it out here</a>
 Version:     0.1.0
+Requires PHP: 7.3
 Author:      Hexydec
 Author URI:  https://github.com/hexydec/
-License:     MIT
+License:     GPL
 License URI: https://github.com/hexydec/htmldoc/blob/master/LICENSE
 */
 
@@ -74,6 +75,10 @@ class htmldoc {
 					'label' => 'Attribute Quotes',
 					'description' => 'Remove quotes from attributes where possible, also unifies the quote style'
 				],
+				'attributes_trim' => [
+					'label' => 'Trim Attributes',
+					'description' => 'Trims whitespace fro the start and end of attribute values'
+				],
 				'attributes_default' => [
 					'label' => 'Default Values',
 					'description' => 'Remove attributes that specify the default value'
@@ -95,8 +100,8 @@ class htmldoc {
 					'description' => 'Sort attributes into most used order for better gzip compression'
 				],
 				'attributes_class' => [
-					'label' => 'Sort Classes', // sort classes
-					'description' => 'Sort class names into most used order for better gzip compression'
+					'label' => 'Minify Class Names', // sort classes
+					'description' => 'Removes unnecessary whitespace from the class attribute'
 				],
 				'attributes_boolean' => [
 					'label' => 'Boolean Attributes', // minify boolean attributes
@@ -220,6 +225,7 @@ class htmldoc {
 		add_action('admin_init', [$this, 'initAdmin']);
 		add_action('admin_menu', [$this, 'setAdminMenu']);
 		add_action('wp_loaded', [$this, 'minify']);
+		register_uninstall_hook(__FILE__, [$this, 'uninstall']);
 	}
 
 	/**
@@ -323,6 +329,10 @@ class htmldoc {
 				submit_button(); ?>
 	    	</form>
 		<?php });
+	}
+
+	public function uninstall() {
+		delete_option($this->slug);
 	}
 
 	/**
