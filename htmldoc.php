@@ -225,7 +225,7 @@ class htmldoc {
 		add_action('admin_init', [$this, 'initAdmin']);
 		add_action('admin_menu', [$this, 'setAdminMenu']);
 		add_action('wp_loaded', [$this, 'minify']);
-		register_uninstall_hook(__FILE__, [$this, 'uninstall']);
+		register_uninstall_hook(__FILE__, __CLASS__.'::uninstall');
 	}
 
 	/**
@@ -331,7 +331,7 @@ class htmldoc {
 		<?php });
 	}
 
-	public function uninstall() {
+	public static function uninstall() {
 		delete_option($this->slug);
 	}
 
