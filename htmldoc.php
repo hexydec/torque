@@ -4,7 +4,7 @@ namespace hexydec\wordpress;
 Plugin Name: Hexydec HTML Minifier
 Plugin URI:  https://github.com/hexydec/htmldoc
 Description: Minify your HTML output and any inline CSS/Javascript. Uses custom written HTML/CSS/JS compilers to produce reliable minification, designed with performance in mind. <a href="https://hexydec.com/htmldoc/" target="_blank">Try it out here</a>
-Version:     0.1.0
+Version:     0.2.0
 Requires PHP: 7.3
 Author:      Hexydec
 Author URI:  https://github.com/hexydec/
@@ -24,16 +24,24 @@ class htmldoc {
 	 */
 	protected $packages = [
 		'htmldoc' => [
-			'file' => 'https://github.com/hexydec/htmldoc/archive/1.0.1.zip',
-			'autoload' => __DIR__.'/htmldoc-1.0.1/src/autoload.php'
+			'file' => 'https://github.com/hexydec/htmldoc/archive/refs/tags/1.2.2.zip',
+			'dir' => __DIR__.'/htmldoc-1.2.2/',
+			'autoload' => 'src/autoload.php'
 		],
 		'cssdoc' => [
-			'file' => 'https://github.com/hexydec/cssdoc/archive/0.1.1.zip',
-			'autoload' => __DIR__.'/cssdoc-0.1.1/src/autoload.php'
+			'file' => 'https://github.com/hexydec/cssdoc/archive/refs/tags/0.3.0.zip',
+			'dir' => __DIR__.'/cssdoc-0.3.0/',
+			'autoload' => 'src/autoload.php'
 		],
 		'jslite' => [
-			'file' => 'https://github.com/hexydec/jslite/archive/v0.2.0.zip',
-			'autoload' => __DIR__.'/jslite-0.2.0/src/autoload.php'
+			'file' => 'https://github.com/hexydec/jslite/archive/refs/tags/0.4.0.zip',
+			'dir' => __DIR__.'/jslite-0.4.0/',
+			'autoload' => 'src/autoload.php'
+		],
+		'tokenise' => [
+			'file' => 'https://github.com/hexydec/tokenise/archive/refs/tags/0.4.0.zip',
+			'dir' => __DIR__.'/tokenise-0.4.0/',
+			'autoload' => 'src/autoload.php'
 		]
 	];
 
@@ -41,9 +49,25 @@ class htmldoc {
 	 * @var array $options A list of configuration options for the plugin
 	 */
 	protected $options = [
-		'general' => [
-			'name' => 'General Minification',
-			'desc' => 'Edit the general minification settings',
+		'options' => [
+			'name' => 'Plugin Options',
+			'desc' => 'Edit the plugin settings',
+			'options' => [
+				'admin' => [
+					'label' => 'Admin System',
+					'description' => 'Minify the admin system',
+					'default' => false
+				],
+				'stats' => [
+					'label' => 'Show Stats',
+					'description' => 'Show stats in the console',
+					'default' => false
+				]
+			]
+		],
+		'basic' => [
+			'name' => 'HTML Basic Minification',
+			'desc' => 'Edit the general HTML minification settings',
 			'options' => [
 				'whitespace' => [
 					'label' => 'Whitespace',
@@ -60,10 +84,6 @@ class htmldoc {
 				'close' => [
 					'label' => 'Closing Tags',
 					'description' => 'Omit closing tags where possible'
-				],
-				'admin' => [
-					'label' => 'Admin System',
-					'description' => 'Minify the admin system'
 				]
 			]
 		],
@@ -110,7 +130,7 @@ class htmldoc {
 			]
 		],
 		'urls' => [
-			'name' => 'URL Minification',
+			'name' => 'HTML URL Minification',
 			'desc' => 'Edit how URLs are minified',
 			'options' => [
 				'urls_scheme' => [
@@ -153,29 +173,41 @@ class htmldoc {
 					'label' => 'Minify CSS',
 					'description' => 'Enable minification of inline CSS within a <style> tag'
 				],
-				'style_removesemicolon' => [
+				'style_semicolons' => [
 					'label' => 'Semicolons',
 					'description' => 'remove last semicolon from each rule'
 				],
-				'style_removezerounits' => [
+				'style_zerounits' => [
 					'label' => 'Zero Units',
 					'description' => 'Remove unit declaration from zero values (e.g. 0px becomes 0)'
 				],
-				'style_removeleadingzero' => [
+				'style_leadingzero' => [
 					'label' => 'Leading Zero\'s',
 					'description' => 'Remove Leading Zero\'s (e.g 0.3s becomes .3s)'
+				],
+				'style_quotes' => [
+					'label' => 'Quotes',
+					'description' => 'Remove quotes where possible'
 				],
 				'style_convertquotes' => [
 					'label' => 'Quote Style',
 					'description' => 'Convert quotes to the same quote style'
 				],
-				'style_removequotes' => [
-					'label' => 'Quotes',
-					'description' => 'Remove quotes where possible'
+				'style_colors' => [
+					'label' => 'Colours',
+					'description' => 'Shorten hex values or replace with colour names where shorter'
 				],
-				'style_shortenhex' => [
-					'label' => 'Hex Values',
-					'description' => 'Shorten hex values where possible'
+				'style_time' => [
+					'label' => 'Colours',
+					'description' => 'Shorten time values where shorter (e.g. 500ms becomes .5s)'
+				],
+				'style_fontweight' => [
+					'label' => 'Font Weight',
+					'description' => 'Shorten font weight values (e.g. font-weight: bold; becomes font-weight:700)'
+				],
+				'style_none' => [
+					'label' => 'None Values',
+					'description' => 'Shorten the value none to 0 where possible (e.g. border: none; becomes border:0)'
 				],
 				'style_lowerproperties' => [
 					'label' => 'Properties',
@@ -185,6 +217,10 @@ class htmldoc {
 					'label' => 'Values',
 					'description' => 'Lowercase values where possible'
 				],
+				'style_cache' => [
+					'label' => 'Cache',
+					'description' => 'Cache minified output for faster execution'
+				]
 			]
 		],
 		'script' => [
@@ -210,6 +246,10 @@ class htmldoc {
 				'script_quotestyle' => [
 					'label' => 'Quote Style',
 					'description' => 'Convert quotes to the same quote style'
+				],
+				'script_cache' => [
+					'label' => 'Cache',
+					'description' => 'Cache minified output for faster execution'
 				]
 			]
 		]
@@ -246,10 +286,12 @@ class htmldoc {
 			$len = strlen(__DIR__) + 1;
 			foreach ($files AS $item) {
 				$path = $item->getRealPath();
-				if ($item->isDir()) {
-					rmdir($path);
-				} elseif (strlen($path) > $len && strpos(str_replace('\\', '/', $path), '/', $len) !== false) {
-					unlink($path);
+				if (mb_strpos($path, __DIR__.'/.git') === false) {
+					if ($item->isDir()) {
+						rmdir($path);
+					} elseif (strlen($path) > $len && strpos(str_replace('\\', '/', $path), '/', $len) !== false) {
+						unlink($path);
+					}
 				}
 			}
 
@@ -287,7 +329,17 @@ class htmldoc {
 				$setting = [];
 				foreach ($this->options AS $option) {
 					foreach ($option['options'] AS $key => $item) {
-						$setting[$key] = !empty($value[$key]);
+
+						// build the options in the format HTMLdoc expects
+						$parts = \explode('_', $key, 2);
+						if (!isset($parts[1])) {
+							$setting[$parts[0]] = !empty($value[$key]);
+						} elseif ($setting[$parts[0]] ?? true) {
+							if (!isset($setting[$parts[0]]) || !is_array($setting[$parts[0]])) {
+								$setting[$parts[0]] = [];
+							}
+							$setting[$parts[0]][$parts[1]] = !empty($value[$key]);
+						}
 					}
 				}
 				return $setting;
@@ -305,7 +357,16 @@ class htmldoc {
 
 			// add options
 			foreach ($group['options'] AS $key => $item) {
-				$value = $options[$key] ?? true;
+
+				// get the current setting
+				$parts = \explode('_', $key, 2);
+				if (isset($parts[1], $options[$parts[0]][$parts[1]])) {
+					$value = $options[$parts[0]][$parts[1]];
+				} elseif (isset($options[$parts[0]])) {
+					$value = $options[$parts[0]];
+				} else {
+					$value = $item['default'] ?? true;
+				}
 				add_settings_field($key, htmlspecialchars($item['label']), function () use ($key, $value, $item) { ?>
 					<input type="checkbox" id="<?= htmlspecialchars($this->slug.'-'.$key); ?>" name="<?= htmlspecialchars($this->slug.'['.$key.']'); ?>" value="1"<?= $value ? ' checked="checked"' : ''; ?> />
 					<label for="<?= htmlspecialchars($this->slug.'-'.$key); ?>"><?= htmlspecialchars($item['description']); ?></label>
@@ -335,6 +396,49 @@ class htmldoc {
 		delete_option($this->slug);
 	}
 
+	protected function getConfig() {
+		return [
+			'custom' => [
+				'style' => [
+					'minifier' => function (string $css, array $minify) {
+						$key = 'htmldoc-style-'.md5($css);
+						if (empty($minify['cache']) || ($min = get_transient($key)) === false) {
+							$obj = new \hexydec\css\cssdoc();
+							if ($obj->load($css)) {
+								$obj->minify($minify);
+								$min = $obj->compile();
+								if (!empty($minify['cache'])) {
+									set_transient($key, $min, 31536000);
+								}
+							} else {
+								return false;
+							}
+						}
+						return $min;
+					}
+				],
+				'script' => [
+					'minifier' => function (string $js, array $minify) {
+						$key = 'htmldoc-script-'.md5($js);
+						if (empty($minify['cache']) || ($min = get_transient($key)) === false) {
+							$obj = new \hexydec\jslite\jslite();
+							if ($obj->load($js)) {
+								$obj->minify($minify);
+								$min = $obj->compile();
+								if (!empty($minify['cache'])) {
+									set_transient($key, $min, 31536000);
+								}
+							} else {
+								return false;
+							}
+						}
+						return $min;
+					}
+				]
+			]
+		];
+	}
+
 	/**
 	 * Minifies the page
 	 *
@@ -344,49 +448,49 @@ class htmldoc {
 
 		// autoload files
 		foreach ($this->packages AS $item) {
-			if (file_exists($item['autoload'])) {
-				require($item['autoload']);
+			if (\file_exists($item['dir'].$item['autoload'])) {
+				require($item['dir'].$item['autoload']);
 			}
 		}
 
 		// create output buffer
-		if (class_exists('\\hexydec\\html\\htmldoc') && ($options = get_option($this->slug)) !== false) {
+		if (\class_exists('\\hexydec\\html\\htmldoc') && ($options = get_option($this->slug)) !== false) {
 			if (!empty($options['admin']) || !is_admin()) {
-				ob_start(function ($html) use ($options) {
-					$doc = new \hexydec\html\htmldoc();
+				\ob_start(function ($html) use ($options) {
+					$time = ['init' => \microtime(true)];
+
+					// get the config and create the object
+					$config = $this->getConfig();
+					$doc = new \hexydec\html\htmldoc($config);
 
 					// load from a variable
+					$time['parse'] = \microtime(true);
 					if ($doc->load($html)) {
 
 						// build the minification options
-						$minify = [];
-						foreach ($this->options AS $key => $item) {
-							foreach (array_keys($item['options']) AS $option) {
-								if (isset($options[$option])) {
-									$parts = explode('_', $option, 2);
-
-									// root level options
-									if (!isset($parts[1])) {
-										$minify[$option] = $options[$option];
-
-									// sub level options
-									} elseif (!isset($minify[$parts[0]]) || $minify[$parts[0]] !== false) {
-
-										// set up array
-										if (!isset($minify[$parts[0]]) || !is_array($minify[$parts[0]])) {
-											$minify[$parts[0]] = [];
-										}
-										$minify[$parts[0]][$parts[1]] = $options[$option];
-									}
-								}
-							}
-						}
-						$doc->minify($minify);
+						$time['minify'] = \microtime(true);
+						$doc->minify($options);
 
 						// compile back to HTML
-						$html = $doc->save();
+						$time['compile'] = \microtime(true);
+						$html = $doc->html();
+
+						// show stats in the console
+						if (!empty($options['stats'])) {
+							$time['complete'] = \microtime(true);
+							$last = null;
+							$json = [];
+							foreach ($time AS $key => $item) {
+								if ($last) {
+									$json[$last] = $item - $time[$last];
+								}
+								$last = $key;
+							}
+							$html .= '<script>console.groupCollapsed("HTMLdoc Stats");console.info('.\json_encode($json).');console.groupEnd()</script>';
+						}
+						return $html;
 					}
-					return $html;
+					return false;
 				});
 			}
 		}
