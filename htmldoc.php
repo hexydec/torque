@@ -1,9 +1,9 @@
 <?php
 namespace hexydec\wordpress;
 /*
-Plugin Name: Hexydec HTML Minifier
-Plugin URI:  https://github.com/hexydec/htmldoc
-Description: Minify your HTML output and any inline CSS/Javascript. Uses custom written HTML/CSS/JS compilers to produce reliable minification, designed with performance in mind. <a href="https://hexydec.com/htmldoc/" target="_blank">Try it out here</a>
+Plugin Name: Hexydec HTMLdoc Minifier
+Plugin URI:  https://github.com/hexydec/htmldoc-wordpress
+Description: Take your website optimisation to the next level! Other minification plugins blindly find and replace patterns within your code to make it smaller, often using outdated 3rd-party libraries. <strong>HTMLdoc is a compiler</strong>, it parses your code to an internal representation, optimises it, and then compiles it back to code. The result is better reliability, compression, and performance. It also bundles CSSdoc and JSlite, compilers from the same author for minifying your inline CSS and Javascript.
 Version:     0.2.0
 Requires PHP: 7.3
 Author:      Hexydec
@@ -17,15 +17,20 @@ class htmldoc {
 	/**
 	 * @var string $slug The slug for the configuration page
 	 */
-	protected $slug = 'htmldoc';
+	protected const SLUG = 'htmldoc';
+
+	/**
+	 * @var string $slug The slug for the configuration page
+	 */
+	protected const VERSION = '0.2.0';
 
 	/**
 	 * @var array $packages A list of external dependencies to be installed when the plugin is activated
 	 */
 	protected $packages = [
 		'htmldoc' => [
-			'file' => 'https://github.com/hexydec/htmldoc/archive/refs/tags/1.2.2.zip',
-			'dir' => __DIR__.'/htmldoc-1.2.2/',
+			'file' => 'https://github.com/hexydec/htmldoc/archive/refs/tags/1.2.3.zip',
+			'dir' => __DIR__.'/htmldoc-1.2.3/',
 			'autoload' => 'src/autoload.php'
 		],
 		'cssdoc' => [
@@ -34,8 +39,8 @@ class htmldoc {
 			'autoload' => 'src/autoload.php'
 		],
 		'jslite' => [
-			'file' => 'https://github.com/hexydec/jslite/archive/refs/tags/0.4.0.zip',
-			'dir' => __DIR__.'/jslite-0.4.0/',
+			'file' => 'https://github.com/hexydec/jslite/archive/refs/tags/0.4.1.zip',
+			'dir' => __DIR__.'/jslite-0.4.1/',
 			'autoload' => 'src/autoload.php'
 		],
 		'tokenise' => [
@@ -53,8 +58,21 @@ class htmldoc {
 			'name' => 'Plugin Options',
 			'desc' => 'Edit the plugin settings',
 			'options' => [
+				'minifyhtml' => [
+					'label' => 'Minify HTML',
+					'description' => 'Enables or disables the whole plugin',
+					'default' => false
+				],
+				'minifystyle' => [
+					'label' => 'Minify CSS',
+					'description' => 'Enable minification of inline CSS within a <style> tag'
+				],
+				'minifyscript' => [
+					'label' => 'Minify Javascript',
+					'description' => 'Enable minification of inline Javascript within a <script> tag'
+				],
 				'admin' => [
-					'label' => 'Admin System',
+					'label' => 'Minify Admin System',
 					'description' => 'Minify the admin system',
 					'default' => false
 				],
@@ -169,10 +187,6 @@ class htmldoc {
 			'name' => 'CSS Minification',
 			'desc' => 'Manage how inline CSS is minified',
 			'options' => [
-				'style' => [
-					'label' => 'Minify CSS',
-					'description' => 'Enable minification of inline CSS within a <style> tag'
-				],
 				'style_semicolons' => [
 					'label' => 'Semicolons',
 					'description' => 'remove last semicolon from each rule'
@@ -227,10 +241,6 @@ class htmldoc {
 			'name' => 'Javascript Minification',
 			'desc' => 'Manage how inline Javascript is minified',
 			'options' => [
-				'script' => [
-					'label' => 'Minify Javascript',
-					'description' => 'Enable minification of inline Javascript within a <script> tag'
-				],
 				'script_whitespace' => [
 					'label' => 'Whitespace', // strip whitespace around javascript
 					'description' => 'Remove unnecessary whitespace'
@@ -245,7 +255,8 @@ class htmldoc {
 				],
 				'script_quotestyle' => [
 					'label' => 'Quote Style',
-					'description' => 'Convert quotes to the same quote style'
+					'description' => 'Convert quotes to the same quote style',
+					'value' => '"'
 				],
 				'script_cache' => [
 					'label' => 'Cache',
@@ -281,19 +292,7 @@ class htmldoc {
 		} else {
 
 			// delete all directories
-			$it = new \RecursiveDirectoryIterator(__DIR__, \RecursiveDirectoryIterator::SKIP_DOTS);
-			$files = new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::CHILD_FIRST);
-			$len = strlen(__DIR__) + 1;
-			foreach ($files AS $item) {
-				$path = $item->getRealPath();
-				if (mb_strpos($path, __DIR__.'/.git') === false) {
-					if ($item->isDir()) {
-						rmdir($path);
-					} elseif (strlen($path) > $len && strpos(str_replace('\\', '/', $path), '/', $len) !== false) {
-						unlink($path);
-					}
-				}
-			}
+			$this->cleanupDirectories(__DIR__, '/.git');
 
 			// install external assets
 			$zip = new \ZipArchive();
@@ -317,6 +316,34 @@ class htmldoc {
 	}
 
 	/**
+	 * Removes an existing directories from the plugin folder
+	 *
+	 * @param string $dir The absolute address of the plugin directory
+	 * @param string $exclude A directory name relative to $dir that shold be excluded from deletion
+	 * @return bool Whether any files or directories were removed
+	 */
+	protected function cleanupDirectories(string $dir, ?string $exclude = null) : bool {
+		$deleted = false;
+		$dir = str_replace('\\', '/', $dir);
+		$it = new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS);
+		$files = new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::CHILD_FIRST);
+		$len = strlen($dir) + 1;
+		foreach ($files AS $item) {
+			$path = str_replace('\\', '/', $item->getRealPath());
+			if (!$exclude || mb_strpos($path, $dir.$exclude) !== 0) {
+				if ($item->isDir()) {
+					rmdir($path);
+					$deleted = true;
+				} elseif (strlen($path) > $len && strpos($path, '/', $len) !== false) {
+					unlink($path);
+					$deleted = true;
+				}
+			}
+		}
+		return $deleted;
+	}
+
+	/**
 	 * Renders the plugin administration panel
 	 *
 	 * @return void
@@ -324,28 +351,33 @@ class htmldoc {
 	public function initAdmin() : void {
 
 		// register field controls
-		register_setting($this->slug, $this->slug, [
+		register_setting(self::SLUG, self::SLUG, [
 			'sanitize_callback' => function (array $value = null) {
 				$setting = [];
 				foreach ($this->options AS $option) {
 					foreach ($option['options'] AS $key => $item) {
+						$val = empty($value[$key]) ? false : ($item['value'] ?? true);
 
 						// build the options in the format HTMLdoc expects
 						$parts = \explode('_', $key, 2);
+
+						// root level
 						if (!isset($parts[1])) {
-							$setting[$parts[0]] = !empty($value[$key]);
+							$setting[$parts[0]] = $val;
+
+						// sub levels
 						} elseif ($setting[$parts[0]] ?? true) {
 							if (!isset($setting[$parts[0]]) || !is_array($setting[$parts[0]])) {
 								$setting[$parts[0]] = [];
 							}
-							$setting[$parts[0]][$parts[1]] = !empty($value[$key]);
+							$setting[$parts[0]][$parts[1]] = $val;
 						}
 					}
 				}
 				return $setting;
 			}
 		]);
-	    $options = get_option($this->slug);
+	    $options = get_option(self::SLUG);
 
 		// render field controls
 		foreach ($this->options AS $g => $group) {
@@ -353,7 +385,7 @@ class htmldoc {
 			// add section
 			add_settings_section('htmldoc_options_'.$g, $group['name'], function () use ($group) {
 				echo htmlspecialchars($group['desc']);
-			}, $this->slug);
+			}, self::SLUG);
 
 			// add options
 			foreach ($group['options'] AS $key => $item) {
@@ -368,9 +400,9 @@ class htmldoc {
 					$value = $item['default'] ?? true;
 				}
 				add_settings_field($key, htmlspecialchars($item['label']), function () use ($key, $value, $item) { ?>
-					<input type="checkbox" id="<?= htmlspecialchars($this->slug.'-'.$key); ?>" name="<?= htmlspecialchars($this->slug.'['.$key.']'); ?>" value="1"<?= $value ? ' checked="checked"' : ''; ?> />
-					<label for="<?= htmlspecialchars($this->slug.'-'.$key); ?>"><?= htmlspecialchars($item['description']); ?></label>
-				<?php }, $this->slug, 'htmldoc_options_'.$g);
+					<input type="checkbox" id="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?= htmlspecialchars(self::SLUG.'['.$key.']'); ?>" value="1"<?= $value ? ' checked="checked"' : ''; ?> />
+					<label for="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>"><?= htmlspecialchars($item['description']); ?></label>
+				<?php }, self::SLUG, 'htmldoc_options_'.$g);
 			}
 		}
 	}
@@ -381,59 +413,80 @@ class htmldoc {
 	 * @return void
 	 */
 	public function setAdminMenu() : void {
-		add_options_page('HTMLdoc - HTML Minifier Configuration', 'HTMLdoc Minifier', 'manage_options', $this->slug, function () { ?>
+		add_options_page('HTMLdoc - HTML Minifier Configuration', 'HTMLdoc Minifier', 'manage_options', self::SLUG, function () { ?>
 			<h1>HTMLdoc Minification Options</h1>
 			<form action="options.php" method="post" accept-charset="<?= htmlspecialchars(mb_internal_encoding()); ?>">
 		        <?php
-		        settings_fields($this->slug);
-		        do_settings_sections($this->slug);
+		        settings_fields(self::SLUG);
+		        do_settings_sections(self::SLUG);
 				submit_button(); ?>
 	    	</form>
 		<?php });
 	}
 
-	public static function uninstall() {
-		delete_option($this->slug);
+	/**
+	 * uninstalls the plugin
+	 *
+	 * @return void
+	 */
+	public static function uninstall() : void {
+		delete_option(self::SLUG);
 	}
 
-	protected function getConfig() {
+	/**
+	 * Renders Javascript that outputs the minification stats to the console
+	 *
+	 * @param array $options The stored configuration for this plugin
+	 * @return array A configuration array for the HTMLdoc object
+	 */
+	protected function getConfig(array $options) : array {
+		$json = json_encode($options);
+
+		// callback for minifying and caching
+		$minify = function (string $code, array $minify, string $tag) use ($json) {
+
+			// transient key
+			$cache = empty($minify['cache']) ? null : 'htmldoc-style-'.md5(self::VERSION.$json.$css);
+
+			// not caching or there wasn't a cache
+			if (!$cache || ($min = get_transient($cache)) === false) {
+
+				// get the minifier object
+				switch ($tag) {
+					case 'style':
+						$obj = new \hexydec\css\cssdoc();
+						break;
+					case  'script':
+						$obj = new \hexydec\jslite\jslite();
+						break;
+					default:
+						return false;
+				}
+
+				// parse, minify, compile
+				if ($obj->load($code)) {
+					$obj->minify($minify);
+					$min = $obj->compile();
+
+					// cache the output
+					if ($cache) {
+						set_transient($cache, $min, 604800); // 7 days
+					}
+				} else {
+					return false;
+				}
+			}
+			return $min;
+		};
+
+		// return config
 		return [
 			'custom' => [
 				'style' => [
-					'minifier' => function (string $css, array $minify) {
-						$key = 'htmldoc-style-'.md5($css);
-						if (empty($minify['cache']) || ($min = get_transient($key)) === false) {
-							$obj = new \hexydec\css\cssdoc();
-							if ($obj->load($css)) {
-								$obj->minify($minify);
-								$min = $obj->compile();
-								if (!empty($minify['cache'])) {
-									set_transient($key, $min, 31536000);
-								}
-							} else {
-								return false;
-							}
-						}
-						return $min;
-					}
+					'minifier' => empty($options['minifystyle']) ? null : $minify
 				],
 				'script' => [
-					'minifier' => function (string $js, array $minify) {
-						$key = 'htmldoc-script-'.md5($js);
-						if (empty($minify['cache']) || ($min = get_transient($key)) === false) {
-							$obj = new \hexydec\jslite\jslite();
-							if ($obj->load($js)) {
-								$obj->minify($minify);
-								$min = $obj->compile();
-								if (!empty($minify['cache'])) {
-									set_transient($key, $min, 31536000);
-								}
-							} else {
-								return false;
-							}
-						}
-						return $min;
-					}
+					'minifier' => empty($options['minifyscript']) ? null : $minify
 				]
 			]
 		];
@@ -446,54 +499,103 @@ class htmldoc {
 	 */
 	public function minify() : void {
 
-		// autoload files
-		foreach ($this->packages AS $item) {
-			if (\file_exists($item['dir'].$item['autoload'])) {
-				require($item['dir'].$item['autoload']);
-			}
-		}
+		// are we going to minify the page?
+		if (($options = get_option(self::SLUG)) !== false && !empty($options['minifyhtml']) && (!empty($options['admin']) || !is_admin())) {
 
-		// create output buffer
-		if (\class_exists('\\hexydec\\html\\htmldoc') && ($options = get_option($this->slug)) !== false) {
-			if (!empty($options['admin']) || !is_admin()) {
+			// autoload files
+			foreach ($this->packages AS $item) {
+				if (\file_exists($item['dir'].$item['autoload'])) {
+					require($item['dir'].$item['autoload']);
+				}
+			}
+
+			// create output buffer
+			if (\class_exists('\\hexydec\\html\\htmldoc')) {
 				\ob_start(function ($html) use ($options) {
-					$time = ['init' => \microtime(true)];
+
+					// collect timing for stats
+					$timing = ['Initialise' => \microtime(true)];
 
 					// get the config and create the object
-					$config = $this->getConfig();
+					$config = $this->getConfig($options);
 					$doc = new \hexydec\html\htmldoc($config);
 
 					// load from a variable
-					$time['parse'] = \microtime(true);
+					$timing['Parse'] = \microtime(true);
 					if ($doc->load($html)) {
 
 						// build the minification options
-						$time['minify'] = \microtime(true);
+						$timing['Minify'] = \microtime(true);
 						$doc->minify($options);
 
 						// compile back to HTML
-						$time['compile'] = \microtime(true);
-						$html = $doc->html();
+						$timing['Compile'] = \microtime(true);
+						$min = $doc->html();
 
 						// show stats in the console
 						if (!empty($options['stats'])) {
-							$time['complete'] = \microtime(true);
-							$last = null;
-							$json = [];
-							foreach ($time AS $key => $item) {
-								if ($last) {
-									$json[$last] = $item - $time[$last];
-								}
-								$last = $key;
-							}
-							$html .= '<script>console.groupCollapsed("HTMLdoc Stats");console.info('.\json_encode($json).');console.groupEnd()</script>';
+							$timing['Complete'] = \microtime(true);
+							$min .= $this->drawStats($html, $min, $timing);
 						}
-						return $html;
+						return $min;
 					}
 					return false;
 				});
 			}
 		}
+	}
+
+	/**
+	 * Renders Javascript that outputs the minification stats to the console
+	 *
+	 * @param string $input The input HTML
+	 * @param string $output The output HTML
+	 * @param array $timings An array of timings for each stage of the process
+	 * @return string An HTML script tag containing Javascript to log the stats to the console
+	 */
+	protected function drawStats(string $input, string $output, array $timing) : string {
+
+		// calculate timings
+		$table = [
+			'Timing' => [],
+			'% Time' => []
+		];
+		$total = $timing['Complete'] - $timing['Initialise'];
+		$last = null;
+		foreach ($timing AS $key => $item) {
+			if ($last) {
+				$table['Timing'][$last] = \round($item - $timing[$last], 8);
+				$table['% Time'][$last] = \round((100 / $total) * $table['Timing'][$last], 2).'%';
+			}
+			$last = $key;
+		}
+		$table['Timing']['Total'] = \round($total, 8);
+		$table['% Time']['Total'] = '100%';
+
+		// calculate sizes
+		$sizes = [
+			'Compression' => [
+				'Input' => \strlen($input),
+				'Output' => \strlen($output)
+			],
+			'Compression (Gzip)' => [
+				'Input' => \strlen(\gzencode($input)),
+				'Output' => \strlen(\gzencode($output))
+			]
+		];
+		$sizes['Compression']['Diff'] = $sizes['Compression']['Input'] - $sizes['Compression']['Output'];
+		$sizes['Compression']['Ratio %'] = \round(100 - ((100 / $sizes['Compression']['Input']) * $sizes['Compression']['Output']), 2).'%';
+		$sizes['Compression (Gzip)']['Diff'] = $sizes['Compression (Gzip)']['Input'] - $sizes['Compression (Gzip)']['Output'];
+		$sizes['Compression (Gzip)']['Ratio %'] = \round(100 - ((100 / $sizes['Compression (Gzip)']['Input']) * $sizes['Compression (Gzip)']['Output']), 2).'%';
+
+		// render javascript
+		$console = [
+			'console.groupCollapsed("HTMLdoc Stats");',
+			'console.table('.\json_encode($table).');',
+			'console.table('.\json_encode($sizes).');',
+			'console.groupEnd()'
+		];
+		return '<script>'.\implode('', $console).'</script>';
 	}
 }
 
