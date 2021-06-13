@@ -4,7 +4,7 @@ namespace hexydec\wordpress;
 Plugin Name: Torque - Optimise the transport of your Website
 Plugin URI:  https://github.com/hexydec/htmldoc-wordpress
 Description: Take your website optimisation to the next level! Other minification plugins blindly find and replace patterns within your code to make it smaller, often using outdated 3rd-party libraries. <strong>Torque is a compiler</strong>, it parses your code to an internal representation, optimises it, and compiles it back to code. The result is better reliability, compression, and performance. Add in header management and other tools, your website will be noticably faster!
-Version:     0.3.0
+Version:     0.3.1
 Requires PHP: 7.3
 Author:      Hexydec
 Author URI:  https://github.com/hexydec/
@@ -22,30 +22,30 @@ class htmldoc {
 	/**
 	 * @var string $slug The slug for the configuration page
 	 */
-	protected const VERSION = '0.3.0';
+	protected const VERSION = '0.3.1';
 
 	/**
 	 * @var array $packages A list of external dependencies to be installed when the plugin is activated
 	 */
 	protected $packages = [
 		'htmldoc' => [
-			'file' => 'https://github.com/hexydec/htmldoc/archive/refs/tags/1.2.3.zip',
-			'dir' => __DIR__.'/htmldoc-1.2.3/',
+			'file' => 'https://github.com/hexydec/htmldoc/archive/refs/tags/v1.2.5.zip',
+			'dir' => __DIR__.'/htmldoc-v1.2.5/',
 			'autoload' => 'src/autoload.php'
 		],
 		'cssdoc' => [
-			'file' => 'https://github.com/hexydec/cssdoc/archive/refs/tags/0.3.0.zip',
-			'dir' => __DIR__.'/cssdoc-0.3.0/',
+			'file' => 'https://github.com/hexydec/cssdoc/archive/refs/tags/0.5.1.zip',
+			'dir' => __DIR__.'/cssdoc-0.5.1/',
 			'autoload' => 'src/autoload.php'
 		],
 		'jslite' => [
-			'file' => 'https://github.com/hexydec/jslite/archive/refs/tags/0.4.1.zip',
-			'dir' => __DIR__.'/jslite-0.4.1/',
+			'file' => 'https://github.com/hexydec/jslite/archive/refs/tags/0.5.1.zip',
+			'dir' => __DIR__.'/jslite-0.5.1/',
 			'autoload' => 'src/autoload.php'
 		],
 		'tokenise' => [
-			'file' => 'https://github.com/hexydec/tokenise/archive/refs/tags/0.4.0.zip',
-			'dir' => __DIR__.'/tokenise-0.4.0/',
+			'file' => 'https://github.com/hexydec/tokenise/archive/refs/tags/0.4.1.zip',
+			'dir' => __DIR__.'/tokenise-0.4.1/',
 			'autoload' => 'src/autoload.php'
 		]
 	];
@@ -244,6 +244,12 @@ class htmldoc {
 			'name' => 'CSS Minification',
 			'desc' => 'Manage how inline CSS is minified',
 			'options' => [
+				'style_selectors' => [
+					'label' => 'Selectors',
+					'type' => 'checkbox',
+					'description' => 'Minify selectors, makes ::before and ::after only have one semi-colon, and removes quotes from attrubte selectors where possible',
+					'default' => true
+				],
 				'style_semicolons' => [
 					'label' => 'Semicolons',
 					'type' => 'checkbox',
@@ -273,6 +279,12 @@ class htmldoc {
 					'type' => 'number',
 					'description' => 'Reduce the maximum number of decimal places a value can have to 4',
 					'default' => 4
+				],
+				'style_multiple' => [
+					'label' => 'Multiples',
+					'type' => 'checkbox',
+					'description' => 'Reduce the specified units where values match, such as margin/padding/border-width (e.g. margin: 10px 10px 10px 10px becomes margin:10px)',
+					'default' => true
 				],
 				'style_quotes' => [
 					'label' => 'Quotes',
@@ -360,10 +372,10 @@ class htmldoc {
 					'value' => '"',
 					'default' => true
 				],
-				'script_lowerkeywords' => [
-					'label' => 'Lowercase Keywords',
+				'script_booleans' => [
+					'label' => 'Booleans',
 					'type' => 'checkbox',
-					'description' => 'Change the case of javascript keywords to lowercase (e.g. RETURN TRUE; becomes return true;)',
+					'description' => 'Shorten booleans (e.g. true beomes !0 and false becomes !1)',
 					'default' => true
 				],
 				'script_cache' => [
@@ -545,8 +557,8 @@ class htmldoc {
 
 					// get the current setting
 					$parts = \explode('_', $key, 2);
-					if (isset($parts[1], $options[$parts[0]][$parts[1]])) {
-						$value = $options[$parts[0]][$parts[1]];
+					if (isset($parts[1])) {
+						$value = $options[$parts[0]][$parts[1]] ?? $item['default'];
 					} elseif (isset($options[$parts[0]])) {
 						$value = $options[$parts[0]];
 					} else {
@@ -764,7 +776,7 @@ class htmldoc {
 
 				// cache control
 				if (($options['maxage'] ?? null) !== null) {
-					if (isset($_COOKIE[\session_name()]) || \is_user_logged_in()) {
+					if (!empty($_POST) || isset($_COOKIE[\session_name()]) || \is_user_logged_in()) {
 						\header('Cache-control: private,max-age=0');
 						$options['maxage'] = 0;
 					} else {
