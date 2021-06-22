@@ -27,6 +27,10 @@ class admin extends config {
 
 							// get the value
 							switch ($item['type']) {
+								case 'input':
+								case 'text':
+									$options[$key] = $value[$key] ?? null;
+									break;
 								case 'checkbox':
 									$options[$key] = empty($value[$key]) ? false : ($item['value'] ?? true);
 									break;
@@ -41,7 +45,8 @@ class admin extends config {
 									if (!isset($item['values'])) {
 										$item['values'] = $this->getDatasource($i, $key);
 									}
-									$options[$key] = isset($value[$key]) && \in_array($value[$key], $item['values']) ? $value[$key] : null;
+									$ids = \array_column($item['values'], 'id');
+									$options[$key] = isset($value[$key]) && \in_array($value[$key], $ids) ? $value[$key] : null;
 									break;
 								case 'multiselect':
 									if (!isset($item['values'])) {
@@ -54,7 +59,21 @@ class admin extends config {
 						}
 					}
 				}
-				return $this->buildConfig($options);
+
+				// build config
+				$config = $this->buildConfig($options);
+
+				// on save callback
+				foreach ($this->options AS $i => $option) {
+					if ($option['tab'] === $current) {
+						foreach ($option['options'] AS $key => $item) {
+							if (!empty($item['onsave'])) {
+								$item['onsave']($options[$key], $config);
+							}
+						}
+					}
+				}
+				return $config;
 			}
 		]);
 	}
@@ -113,11 +132,21 @@ class admin extends config {
 
 						// render the controls
 						switch ($item['type']) {
+							case 'input':
 							case 'checkbox':
 							case 'number':
 								$checkbox = $item['type'] === 'checkbox'; ?>
 								<input type="<?= $item['type']; ?>" id="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?= htmlspecialchars(self::SLUG.'['.$key.']'); ?>" value="<?= $checkbox ? '1' : htmlspecialchars($value); ?>"<?= $checkbox && $value ? ' checked="checked"' : ''; ?> />
-								<label for="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>"><?= htmlspecialchars($item['description']); ?></label>
+								<?php
+								if ($checkbox && !empty($item['description'])) { ?>
+									<label for="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>"><?= htmlspecialchars($item['description']); ?></label>
+									<?php
+									$item['description'] = null;
+								}
+								break;
+							case 'text':
+								?>
+								<textarea id="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?= htmlspecialchars(self::SLUG.'['.$key.']'); ?>" rows="5" cols="30"><?= htmlspecialchars($value); ?></textarea>
 								<?php
 								break;
 							case 'multiselect':
@@ -145,6 +174,11 @@ class admin extends config {
 								<?php
 								break;
 						}
+
+						// description
+						if (!empty($item['description'])) { ?>
+							<p><?= htmlspecialchars($item['description']); ?></p>
+						<?php }
 					}, self::SLUG, self::SLUG.'_options_'.$g);
 				}
 			}

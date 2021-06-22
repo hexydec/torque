@@ -417,10 +417,81 @@ class config extends packages {
 				]
 			]
 		],
+		'csp' => [
+			'tab' => 'Security',
+			'name' => 'Content Security Policy',
+			'desc' => 'Controls what domains your site is allowed to connect and load assets from. Use "\'self\'" for the current domain, "\'unsafe-inline\'" to allow inline scripts or style, and "data:" to allow data URI\'s. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy" target="_blank">See MDN for more options</a>.',
+			'options' => [
+				'csp_setting' => [
+					'label' => 'Content-Security-Policy', // Strict-Transport-Security
+					'description' => 'Test your CSP thoroughly before deploying, as it can break your website if not setup correctly',
+					'type' => 'select',
+					'values' => [
+						['id' => 'disabled', 'name' => 'Disabled'],
+						['id' => 'enabled', 'name' => 'Enabled']
+					],
+					'default' => 'disabled'
+				],
+				'csp_default' => [
+					'label' => 'Default Sources',
+					'description' => 'A list of hosts that serves as a fallback to when there are no specific settings',
+					'type' => 'text',
+					'default' => "'self'"
+				],
+				'csp_style' => [
+					'label' => 'Style Sources',
+					'description' => 'A list of hosts that are allowed to link stylesheets',
+					'type' => 'text',
+					'default' => "'self'\ndata:\n'unsafe-inline'"
+				],
+				'csp_script' => [
+					'label' => 'Script Sources',
+					'description' => 'A list of hosts that are allowed to link scripts',
+					'type' => 'text',
+					'default' => "'self'\n'unsafe-inline'"
+				],
+				'csp_image' => [
+					'label' => 'Image Sources',
+					'description' => 'A list of hosts that are allowed to link images',
+					'type' => 'text',
+					'default' => ''
+				],
+				'csp_font' => [
+					'label' => 'Font Sources',
+					'description' => 'Specifies valid sources for fonts loaded using @font-face',
+					'type' => 'text',
+					'default' => ''
+				],
+				'csp_media' => [
+					'label' => 'Media Sources',
+					'description' => 'Specifies valid sources for loading media using the <audio>, <video> and <track> elements',
+					'type' => 'text',
+					'default' => ''
+				],
+				'csp_object' => [
+					'label' => 'Object Sources',
+					'description' => 'Specifies valid sources for the <object>, <embed>, and <applet> elements',
+					'type' => 'text',
+					'default' => ''
+				],
+				'csp_frame' => [
+					'label' => 'Frame Sources',
+					'description' => 'Specifies valid sources for nested browsing contexts',
+					'type' => 'text',
+					'default' => ''
+				],
+				'csp_connect' => [
+					'label' => 'Connect Sources',
+					'description' => 'Restricts the URLs which can be loaded using script interfaces',
+					'type' => 'text',
+					'default' => ''
+				]
+			]
+		],
 		'preload' => [
 			'tab' => 'Preload',
 			'name' => 'HTTP/2.0 Preload',
-			'desc' => 'Push assets to the client on first load to make it appear faster',
+			'desc' => 'Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Preload.',
 			'options' => [
 				'preload' => [
 					'label' => 'Preload Assets',
@@ -440,7 +511,7 @@ class config extends packages {
 	public function __construct() {
 
 		// bind data
-		$url = get_home_url();
+		$url = get_home_url().'/';
 		$this->options['preload']['options']['preload']['datasource'] = function () use ($url) {
 			if (($assets = self::getPageAssets($url)) !== false) {
 				$filtered = [];
@@ -465,6 +536,35 @@ class config extends packages {
 			}
 			return false;
 		};
+		$this->options['settings']['options']['combinestyle']['onsave'] = function (array $value, array $options) {
+			if ($value) {
+				$css = '';
+				$obj = new \hexydec\css\cssdoc();
+
+				// minify each file
+				foreach ($value AS $item) {
+					if ($obj->open(ABSPATH.$item)) {
+						$obj->minify($options['style'] ?? []);
+						$css .= $obj->compile();
+					}
+				}
+
+				// write the file
+				if ($css) {
+					$dir =  __DIR__.'/build/';
+					$file = $dir.\md5(\implode(',', $value)).'.css';
+					if (!\is_dir($dir)) {
+						\mkdir($dir, 0755);
+					}
+					if (\file_put_contents($file, $css)) {
+						return true;
+					} else {
+						\add_settings_error(self::SLUG, self::SLUG, 'The combined CSS file could not be generated');
+					}
+				}
+			}
+			return false;
+		};
 		$this->options['settings']['options']['combinescripts']['datasource'] = function () use ($url) {
 			if (($assets = self::getPageAssets($url)) !== false) {
 				$filtered = [];
@@ -477,6 +577,39 @@ class config extends packages {
 			}
 			return false;
 		};
+		$this->options['settings']['options']['combinescripts']['onsave'] = function (array $value, array $options) {
+			if ($value) {
+				$js = '';
+				$obj = new \hexydec\jslite\jslite();
+
+				// minify each file
+				foreach ($value AS $item) {
+					if ($obj->open(ABSPATH.$item)) {
+						$obj->minify($options['style'] ?? []);
+						$js .= $obj->compile();
+					}
+				}
+
+				// write the file
+				if ($js) {
+					$dir =  __DIR__.'/build/';
+					$file = $dir.\md5(\implode(',', $value)).'.js';
+					if (!\is_dir($dir)) {
+						\mkdir($dir, 0755);
+					}
+					if (\file_put_contents($file, $js)) {
+						return true;
+					} else {
+						\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
+					}
+				}
+			}
+			return false;
+		};
+		$this->options['csp']['options']['csp_setting']['values'][] = [
+			'id' => get_current_user_id(),
+			'name' => 'Enabled for me only (Testing)'
+		];
 	}
 
 	protected function getPageAssets(string $url) {
@@ -507,8 +640,19 @@ class config extends packages {
 				// extract each type
 				foreach ($extract AS $key => $item) {
 					if (($nodes = $obj->find($item['selector'])) !== false) {
+
+						// lopp through all the found nodes
 						foreach ($nodes AS $node) {
+
+							// extract the attribute value
 							$name = strstr($node->attr($item['attr']), '?', true);
+
+							// normalise URL
+							if (mb_strpos($name, $url) === 0) {
+								$name = mb_substr($name, mb_strlen($url));
+							}
+
+							// add to asset list
 							$assets[$url][] = [
 								'id' => $name,
 								'group' => $key,
@@ -523,9 +667,10 @@ class config extends packages {
 	}
 
 	protected function buildConfig(array $values = []) {
-		if (($config = get_option(self::SLUG)) === false) {
-			$config = [];
+		if (($current = get_option(self::SLUG)) === false) {
+			$current = [];
 		}
+		$config = [];
 		foreach ($this->options AS $i => $option) {
 			foreach ($option['options'] AS $key => $item) {
 
@@ -536,23 +681,29 @@ class config extends packages {
 				if (!isset($parts[1])) {
 					if (isset($values[$key])) {
 						$config[$parts[0]] = $values[$key];
-					} elseif (!isset($config[$parts[0]])) {
+					} elseif (isset($current[$parts[0]])) {
+						$config[$parts[0]] = $current[$parts[0]];
+					} else {
 						$config[$parts[0]] = $item['default'] ?? null;
 					}
 
 				// sub levels
 				} else {
-					if (!isset($options[$parts[0]]) || !is_array($options[$parts[0]])) {
+					if (!isset($config[$parts[0]]) || !is_array($config[$parts[0]])) {
 						$config[$parts[0]] = [];
 					}
 					if (isset($values[$key])) {
 						$config[$parts[0]][$parts[1]] = $values[$key];
-					} elseif (!isset($config[$parts[0]][$parts[1]])) {
+					} elseif (isset($current[$parts[0]][$parts[1]])) {
+						$config[$parts[0]][$parts[1]] = $current[$parts[0]][$parts[1]];
+					} else {
 						$config[$parts[0]][$parts[1]] = $item['default'] ?? null;
 					}
 				}
 			}
 		}
+		// var_dump($config, $this->options['csp']['options']['csp_setting'], $values, $_POST);
+		// exit();
 		return $config;
 	}
 
