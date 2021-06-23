@@ -251,7 +251,7 @@ class app extends config {
 		}
 
 		// set header
-		return implode(', ', $links));
+		return implode(', ', $links);
 	}
 
 	/**
