@@ -105,25 +105,33 @@ class app extends config {
 
 				// add combined stylesheet
 				if ($options['preloadstyle'] && $options['combinestyle']) {
-					$options['preload'][] = \str_replace('\\', '/', \mb_substr(__DIR__, \mb_strlen(ABSPATH)).'/build/'.\md5(implode(',', $options['combinestyle'])).'.css');
+					$file = __DIR__.'/build/'.\md5(implode(',', $options['combinestyle'])).'.css';
+					$options['preload'][] = \str_replace('\\', '/', \mb_substr($file, \mb_strlen(ABSPATH)).'?'.\filemtime($file));
 				}
 
 				// set header
 				header('Link: '.$this->getPreloadLinks($options['preload']));
 			}
 
-			// create output buffer
-			\ob_start(function (string $html) use ($options) {
-
-				// make sure the output is text/html, so we are not trying to minify javascript or something
-				foreach (\headers_list() AS $item) {
-					if (\mb_stripos($item, 'Content-Type:') === 0 && \mb_stripos($item, 'Content-Type: text/html') === false) {
-						return false;
-					}
+			// check some options are set that require htmldoc
+			$htmldoc = false;
+			foreach (['minifyhtml', 'lazyload', 'combinestyle', 'combinescript'] AS $item) {
+				if (!empty($options[$item])) {
+					$htmldoc = true;
+					break;
 				}
+			}
+			if ($htmldoc && \class_exists('\\hexydec\\html\\htmldoc') && !isset($_GET['notorque'])) {
 
-				// only load HTMLdoc if minifying or lazyloading
-				if (\class_exists('\\hexydec\\html\\htmldoc') && (!empty($options['minifyhtml']) || !empty($options['lazyload']))) {
+				// create output buffer
+				\ob_start(function (string $html) use ($options) {
+
+					// make sure the output is text/html, so we are not trying to minify javascript or something
+					foreach (\headers_list() AS $item) {
+						if (\mb_stripos($item, 'Content-Type:') === 0 && \mb_stripos($item, 'Content-Type: text/html') === false) {
+							return false;
+						}
+					}
 
 					// collect timing for stats
 					$timing = ['Initialise' => \microtime(true)];
@@ -139,6 +147,28 @@ class app extends config {
 						// add lazyload attributes
 						if (!empty($options['lazyload'])) {
 							$doc->find('img,iframe')->attr('loading', 'lazy');
+						}
+
+						// combine style
+						if (!empty($options['combinestyle'])) {
+							foreach ($options['combinestyle'] AS $item) {
+								$len = \strlen($html);
+								$doc->remove('link[rel=stylesheet][href*="'.$item.'"]');
+								// return $len .' - '.strlen($doc->html()).' - '.$item;
+							}
+							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
+							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
+							$doc->find("head")->append('<link rel="stylesheet" href="'.\htmlspecialchars($url).'" />');
+						}
+
+						// combine style
+						if (!empty($options['combinescript'])) {
+							foreach ($options['combinescript'] AS $item) {
+								$doc->remove('script[src*="'.$item.'"]');
+							}
+							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
+							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
+							$doc->find("body")->append('<script src="'.\htmlspecialchars($url).'"></script>');
 						}
 
 						// build the minification options
@@ -158,31 +188,31 @@ class app extends config {
 						}
 						$html = $min;
 					}
-				}
 
-				// cache control
-				if (($options['maxage'] ?? null) !== null) {
-					if (!empty($_POST) || isset($_COOKIE[\session_name()]) || \is_user_logged_in()) {
-						\header('Cache-control: private,max-age=0');
-						$options['maxage'] = 0;
-					} else {
-						\header('Cache-Control: max-age='.$options['maxage'].($options['smaxage'] === null ? '' : ',s-maxage='.$options['smaxage']), true);
+					// cache control
+					if (($options['maxage'] ?? null) !== null) {
+						if (!empty($_POST) || isset($_COOKIE[\session_name()]) || \is_user_logged_in()) {
+							\header('Cache-control: private,max-age=0');
+							$options['maxage'] = 0;
+						} else {
+							\header('Cache-Control: max-age='.$options['maxage'].($options['smaxage'] === null ? '' : ',s-maxage='.$options['smaxage']), true);
+						}
+						\header('Expires: '.\gmdate('D, d M Y H:i:s \G\M\T', \time() + $options['maxage']), true);
 					}
-					\header('Expires: '.\gmdate('D, d M Y H:i:s \G\M\T', \time() + $options['maxage']), true);
-				}
 
-				// check etags
-				if (($options['etags'] ?? null) !== null && empty($_POST) && $this->matchesEtag($html)) {
-					http_response_code(304);
-					return '';
-				}
+					// check etags
+					if (($options['etags'] ?? null) !== null && empty($_POST) && $this->matchesEtag($html)) {
+						\http_response_code(304);
+						return '';
+					}
 
-				// set content length header
-				header('Content-length: '.strlen($html), true);
+					// set content length header
+					\header('Content-length: '.\strlen($html), true);
 
-				// return HTML
-				return $html;
-			});
+					// return HTML
+					return $html;
+				});
+			}
 		}
 	}
 
@@ -247,7 +277,11 @@ class app extends config {
 		$base = \get_home_url().'/';
 		$links = [];
 		foreach ($preload AS $item) {
-			$links[] = '<'.$base.$item.'>; rel="preload"; as="'.($as[strrchr($item, '.')] ?? 'image').'"';
+			$ext = strrchr($item, '.');
+			if (($tmp = strstr($ext, '?', true)) !== false) {
+				$ext = $tmp;
+			}
+			$links[] = '<'.$base.$item.'>; rel="preload"; as="'.($as[$ext] ?? 'image').'"'.($as[$ext] === 'font' ? '; crossorigin' : '');
 		}
 
 		// set header

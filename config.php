@@ -35,7 +35,7 @@ class config extends packages {
 					'description' => 'Enable minification of inline Javascript within a <script> tag and combined scripts',
 					'default' => true
 				],
-				'combinescripts' => [
+				'combinescript' => [
 					'label' => 'Combine Javascript',
 					'type' => 'multiselect',
 					'description' => 'Select which Javascript files to combine and minify',
@@ -511,12 +511,18 @@ class config extends packages {
 	public function __construct() {
 
 		// bind data
-		$url = get_home_url().'/';
+		$url = \get_home_url().'/';
 		$this->options['preload']['options']['preload']['datasource'] = function () use ($url) {
 			if (($assets = self::getPageAssets($url)) !== false) {
+
+				// get style that are combined, to disallow in preload
+				$options = \get_option(self::SLUG);
+				$skip = $options['combinestyle'] ?? [];
+
+				// filter the available files, no point in preloading scripts, just defer them
 				$filtered = [];
 				foreach ($assets AS $item) {
-					if ($item['group'] !== 'Scripts') {
+					if ($item['group'] !== 'Scripts' && !\in_array($item['name'], $skip)) {
 						$filtered[] = $item;
 					}
 				}
@@ -545,7 +551,13 @@ class config extends packages {
 				foreach ($value AS $item) {
 					if ($obj->open(ABSPATH.$item)) {
 						$obj->minify($options['style'] ?? []);
-						$css .= $obj->compile();
+
+						// compile and rewrite URL's
+						$css .= \preg_replace_callback('/url\\([\'"]?+(?!data:)([^\\)]++)[\'"]?\\)/i', function (array $match) use ($item) {
+							\chdir(\dirname(ABSPATH.$item));
+							$path = \realpath($match[1]);
+							return 'url('.\str_replace('\\', '/', \substr($path, \strlen($_SERVER['DOCUMENT_ROOT']))).')';
+						}, $obj->compile());
 					}
 				}
 
@@ -565,7 +577,7 @@ class config extends packages {
 			}
 			return false;
 		};
-		$this->options['settings']['options']['combinescripts']['datasource'] = function () use ($url) {
+		$this->options['settings']['options']['combinescript']['datasource'] = function () use ($url) {
 			if (($assets = self::getPageAssets($url)) !== false) {
 				$filtered = [];
 				foreach ($assets AS $item) {
@@ -577,7 +589,7 @@ class config extends packages {
 			}
 			return false;
 		};
-		$this->options['settings']['options']['combinescripts']['onsave'] = function (array $value, array $options) {
+		$this->options['settings']['options']['combinescript']['onsave'] = function (array $value, array $options) {
 			if ($value) {
 				$js = '';
 				$obj = new \hexydec\jslite\jslite();
@@ -586,7 +598,7 @@ class config extends packages {
 				foreach ($value AS $item) {
 					if ($obj->open(ABSPATH.$item)) {
 						$obj->minify($options['style'] ?? []);
-						$js .= $obj->compile();
+						$js .= ($js && $js[-1] !== '}' ? ';' : '').$obj->compile();
 					}
 				}
 
@@ -607,7 +619,7 @@ class config extends packages {
 			return false;
 		};
 		$this->options['csp']['options']['csp_setting']['values'][] = [
-			'id' => get_current_user_id(),
+			'id' => \get_current_user_id(),
 			'name' => 'Enabled for me only (Testing)'
 		];
 	}
@@ -619,7 +631,7 @@ class config extends packages {
 
 			// parse the page
 			$obj = new \hexydec\html\htmldoc();
-			if ($obj->open($url)) {
+			if ($obj->open($url.'?notorque')) {
 
 				// define what we are going to extract
 				$extract = [
@@ -645,11 +657,11 @@ class config extends packages {
 						foreach ($nodes AS $node) {
 
 							// extract the attribute value
-							$name = strstr($node->attr($item['attr']), '?', true);
+							$name = \strstr($node->attr($item['attr']), '?', true);
 
 							// normalise URL
-							if (mb_strpos($name, $url) === 0) {
-								$name = mb_substr($name, mb_strlen($url));
+							if (\mb_strpos($name, $url) === 0) {
+								$name = \mb_substr($name, \mb_strlen($url));
 							}
 
 							// add to asset list
@@ -658,6 +670,11 @@ class config extends packages {
 								'group' => $key,
 								'name' => $name
 							];
+
+							// extract assets from stylesheets
+							if (($items = $this->getStylesheetAssets($url.$name)) !== null) {
+								$assets[$url] = array_merge($assets[$url], $items);
+							}
 						}
 					}
 				}
@@ -666,8 +683,40 @@ class config extends packages {
 		return $assets[$url];
 	}
 
+	protected function getStylesheetAssets(string $url) : ?array {
+		$assets = [];
+		if (($css = \file_get_contents($url)) !== false) {
+			$types = [
+				'svg' => 'Images',
+				'gif' => 'Images',
+				'jpg' => 'Images',
+				'jpeg' => 'Images',
+				'png' => 'Images',
+				'webp' => 'Images',
+				'woff' => 'Fonts',
+				'woff2' => 'Fonts',
+				'eot' => 'Fonts',
+				'ttf' => 'Fonts'
+			];
+			$re = '/url\\(\\s*(.+\\.('.\implode('|', \array_keys($types)).'))(?:\\?[^\\s\\)])?\\s*\\)/i';
+			if (\preg_match_all($re, $css, $match, PREG_SET_ORDER)) {
+				\chdir($_SERVER['DOCUMENT_ROOT'].\parse_url(\dirname($url), PHP_URL_PATH));
+				$len = \strlen(ABSPATH);
+				foreach ($match AS $item) {
+					$path = \str_replace('\\', '/', \substr(\realpath($item[1]), $len));
+					$assets[] = [
+						'id' => $path,
+						'group' => $types[$item[2]],
+						'name' => $path
+					];
+				}
+			}
+		}
+		return $assets ? $assets : null;
+	}
+
 	protected function buildConfig(array $values = []) {
-		if (($current = get_option(self::SLUG)) === false) {
+		if (($current = \get_option(self::SLUG)) === false) {
 			$current = [];
 		}
 		$config = [];
@@ -689,7 +738,7 @@ class config extends packages {
 
 				// sub levels
 				} else {
-					if (!isset($config[$parts[0]]) || !is_array($config[$parts[0]])) {
+					if (!isset($config[$parts[0]]) || !\is_array($config[$parts[0]])) {
 						$config[$parts[0]] = [];
 					}
 					if (isset($values[$key])) {
@@ -712,7 +761,7 @@ class config extends packages {
 		$keys = [];
 		foreach ($this->options AS $key => $item) {
 			$tab = $item['tab'];
-			if (!in_array($item['tab'], $tabs)) {
+			if (!\in_array($item['tab'], $tabs)) {
 				$tabs[] = $item['tab'];
 				$keys[] = $key;
 			}

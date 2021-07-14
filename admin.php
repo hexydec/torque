@@ -14,7 +14,7 @@ class admin extends config {
 	public function menu() {
 
 		// register field controls
-		register_setting(self::SLUG, self::SLUG, [
+		\register_setting(self::SLUG, self::SLUG, [
 			'sanitize_callback' => function (array $value = null) {
 
 				// check the form
@@ -82,29 +82,29 @@ class admin extends config {
 		$tab = $this->getCurrentTab();
 
 		// add admin page
-		add_options_page('Torque - Optimise the transport of your website', 'Torque', 'manage_options', self::SLUG, function () use ($tab) { ?>
+		\add_options_page('Torque - Optimise the transport of your website', 'Torque', 'manage_options', self::SLUG, function () use ($tab) { ?>
 			<h1>Torque Configuration</h1>
-			<form action="options.php" method="post" accept-charset="<?= htmlspecialchars(mb_internal_encoding()); ?>">
-				<input type="hidden" name="tab" value="<?= htmlspecialchars($tab); ?>" />
+			<form action="options.php" method="post" accept-charset="<?= \htmlspecialchars(\mb_internal_encoding()); ?>">
+				<input type="hidden" name="tab" value="<?= \htmlspecialchars($tab); ?>" />
 				<nav class="nav-tab-wrapper">
-			        <?php
+					<?php
 					$tabs = [];
 					foreach ($this->options AS $key => $item) {
-						if (!in_array($item['tab'], $tabs)) {
+						if (!\in_array($item['tab'], $tabs)) {
 							$tabs[] = $item['tab'];
-							?><a href="?page=<?= self::SLUG; ?>&amp;tab=<?= $key; ?>" class="nav-tab<?= $key === $tab ? ' nav-tab-active' : '' ?>" title="<?= htmlspecialchars($item['desc']); ?>"><?= htmlspecialchars($item['tab']); ?></a><?php
+							?><a href="?page=<?= \htmlspecialchars(self::SLUG); ?>&amp;tab=<?= $key; ?>" class="nav-tab<?= $key === $tab ? ' nav-tab-active' : '' ?>" title="<?= \htmlspecialchars($item['desc']); ?>"><?= \htmlspecialchars($item['tab']); ?></a><?php
 						}
 					} ?>
 				</nav>
 				<?php
-		        settings_fields(self::SLUG);
-		        do_settings_sections(self::SLUG);
-				submit_button(); ?>
-	    	</form>
+				\settings_fields(self::SLUG);
+				\do_settings_sections(self::SLUG);
+				\submit_button(); ?>
+			</form>
 		<?php });
 
 		// get options
-		$options = get_option(self::SLUG);
+		$options = \get_option(self::SLUG);
 
 		// render field controls
 		$current = $this->options[$tab]['tab'];
@@ -112,13 +112,13 @@ class admin extends config {
 			if ($group['tab'] === $current) {
 
 				// add section
-				add_settings_section(self::SLUG.'_options_'.$g, $group['name'], function () use ($g, $group) {
+				\add_settings_section(self::SLUG.'_options_'.$g, $group['name'], function () use ($g, $group) {
 					echo $group['desc'];
 				}, self::SLUG);
 
 				// add options
 				foreach ($group['options'] AS $key => $item) {
-					add_settings_field($key, htmlspecialchars($item['label']), function () use ($g, $key, $item, $options) {
+					\add_settings_field($key, \htmlspecialchars($item['label']), function () use ($g, $key, $item, $options) {
 
 						// get the current setting
 						$parts = \explode('_', $key, 2);
@@ -136,29 +136,29 @@ class admin extends config {
 							case 'checkbox':
 							case 'number':
 								$checkbox = $item['type'] === 'checkbox'; ?>
-								<input type="<?= $item['type']; ?>" id="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?= htmlspecialchars(self::SLUG.'['.$key.']'); ?>" value="<?= $checkbox ? '1' : htmlspecialchars($value); ?>"<?= $checkbox && $value ? ' checked="checked"' : ''; ?> />
+								<input type="<?= $item['type']; ?>" id="<?= \htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?= \htmlspecialchars(self::SLUG.'['.$key.']'); ?>" value="<?= $checkbox ? '1' : \htmlspecialchars($value); ?>"<?= $checkbox && $value ? ' checked="checked"' : ''; ?> />
 								<?php
 								if ($checkbox && !empty($item['description'])) { ?>
-									<label for="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>"><?= htmlspecialchars($item['description']); ?></label>
+									<label for="<?= \htmlspecialchars(self::SLUG.'-'.$key); ?>"><?= \htmlspecialchars($item['description']); ?></label>
 									<?php
 									$item['description'] = null;
 								}
 								break;
 							case 'text':
 								?>
-								<textarea id="<?= htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?= htmlspecialchars(self::SLUG.'['.$key.']'); ?>" rows="5" cols="30"><?= htmlspecialchars($value); ?></textarea>
+								<textarea id="<?= \htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?= \htmlspecialchars(self::SLUG.'['.$key.']'); ?>" rows="5" cols="30"><?= \htmlspecialchars($value); ?></textarea>
 								<?php
 								break;
 							case 'multiselect':
 							case 'select':
-								if (!is_array($value)) {
+								if (!\is_array($value)) {
 									$value = [$value];
 								}
 								if (!isset($item['values'])) {
 									$item['values'] = $this->getDatasource($g, $key);
 								}
 								$group = null; ?>
-								<select name="<?= htmlspecialchars(self::SLUG.'['.$key.']'.($item['type'] === 'multiselect' ? '[]' : '')); ?>"<?= $item['type'] === 'multiselect' ? ' multiple="multiple" style="height:200px;"' : ''; ?>>
+								<select name="<?= \htmlspecialchars(self::SLUG.'['.$key.']'.($item['type'] === 'multiselect' ? '[]' : '')); ?>"<?= $item['type'] === 'multiselect' ? ' multiple="multiple" style="height:200px;"' : ''; ?>>
 									<?php foreach ($item['values'] AS $option) {
 										if (($option['group'] ?? null) !== $group) {
 											if ($group) {
@@ -177,7 +177,7 @@ class admin extends config {
 
 						// description
 						if (!empty($item['description'])) { ?>
-							<p><?= htmlspecialchars($item['description']); ?></p>
+							<p><?= \htmlspecialchars($item['description']); ?></p>
 						<?php }
 					}, self::SLUG, self::SLUG.'_options_'.$g);
 				}
@@ -188,7 +188,7 @@ class admin extends config {
 	protected function getDatasource(string $group, string $key) {
 		if (isset($this->options[$group]['options'][$key])) {
 			if (empty($this->options[$group]['options'][$key]['values']) && !empty($this->options[$group]['options'][$key]['datasource'])) {
-				$this->options[$group]['options'][$key]['values'] = call_user_func($this->options[$group]['options'][$key]['datasource']);
+				$this->options[$group]['options'][$key]['values'] = \call_user_func($this->options[$group]['options'][$key]['datasource']);
 			}
 			return $this->options[$group]['options'][$key]['values'];
 		}
