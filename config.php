@@ -205,7 +205,7 @@ class config extends packages {
 		'style' => [
 			'tab' => 'CSS',
 			'name' => 'CSS Minification',
-			'desc' => 'Manage how inline CSS is minified',
+			'desc' => 'Manage how inline CSS and combined CSS files are minified',
 			'options' => [
 				'style_selectors' => [
 					'label' => 'Selectors',
@@ -252,7 +252,7 @@ class config extends packages {
 				'style_quotes' => [
 					'label' => 'Quotes',
 					'type' => 'checkbox',
-					'description' => 'Remove quotes where possible (e.g. url("htmldoc.png") becomes url(htmldoc.png))',
+					'description' => 'Remove quotes where possible (e.g. url("torque.png") becomes url(torque.png))',
 					'default' => true
 				],
 				'style_convertquotes' => [
@@ -308,7 +308,7 @@ class config extends packages {
 		'script' => [
 			'tab' => 'Javascript',
 			'name' => 'Javascript Minification',
-			'desc' => 'Manage how inline Javascript is minified',
+			'desc' => 'Manage how inline Javascript and combined Javascript\'s are minified',
 			'options' => [
 				'script_whitespace' => [
 					'label' => 'Whitespace', // strip whitespace around javascript
@@ -446,7 +446,8 @@ class config extends packages {
 				],
 				'csp_script' => [
 					'label' => 'Script Sources',
-					'description' => 'A list of hosts that are allowed to link scripts',
+					'description' => 'A list of hosts that are allowed to link scripts. Note that you will probably need \'unsafe-inline\' as Wordpress embeds Javascripts by default, and your plugins are likely too also (<a href="https://blog.teamtreehouse.com/unobtrusive-javascript-important" target="_blank">Even though they shouldn\'t</a>)',
+					'descriptionhtml' => true,
 					'type' => 'text',
 					'default' => "'self'\n'unsafe-inline'"
 				],
@@ -513,7 +514,7 @@ class config extends packages {
 		// bind data
 		$url = \get_home_url().'/';
 		$this->options['preload']['options']['preload']['datasource'] = function () use ($url) {
-			if (($assets = self::getPageAssets($url)) !== false) {
+			if (($assets = assets::getPageAssets($url)) !== false) {
 
 				// get style that are combined, to disallow in preload
 				$options = \get_option(self::SLUG);
@@ -531,7 +532,7 @@ class config extends packages {
 			return false;
 		};
 		$this->options['settings']['options']['combinestyle']['datasource'] = function () use ($url) {
-			if (($assets = self::getPageAssets($url)) !== false) {
+			if (($assets = assets::getPageAssets($url)) !== false) {
 				$filtered = [];
 				foreach ($assets AS $item) {
 					if ($item['group'] === 'Stylesheets') {
@@ -578,7 +579,7 @@ class config extends packages {
 			return false;
 		};
 		$this->options['settings']['options']['combinescript']['datasource'] = function () use ($url) {
-			if (($assets = self::getPageAssets($url)) !== false) {
+			if (($assets = assets::getPageAssets($url)) !== false) {
 				$filtered = [];
 				foreach ($assets AS $item) {
 					if ($item['group'] === 'Scripts') {
@@ -622,97 +623,6 @@ class config extends packages {
 			'id' => \get_current_user_id(),
 			'name' => 'Enabled for me only (Testing)'
 		];
-	}
-
-	protected function getPageAssets(string $url) {
-		static $assets = [];
-		if (!isset($assets[$url])) {
-			$assets[$url] = [];
-
-			// parse the page
-			$obj = new \hexydec\html\htmldoc();
-			if ($obj->open($url.'?notorque')) {
-
-				// define what we are going to extract
-				$extract = [
-					'Stylesheets' => [
-						'selector' => 'link[rel=stylesheet]',
-						'attr' => 'href'
-					],
-					'Scripts' => [
-						'selector' => 'script[src]',
-						'attr' => 'src'
-					],
-					'Images' => [
-						'selector' => 'img',
-						'attr' => 'src'
-					]
-				];
-
-				// extract each type
-				foreach ($extract AS $key => $item) {
-					if (($nodes = $obj->find($item['selector'])) !== false) {
-
-						// lopp through all the found nodes
-						foreach ($nodes AS $node) {
-
-							// extract the attribute value
-							$name = \strstr($node->attr($item['attr']), '?', true);
-
-							// normalise URL
-							if (\mb_strpos($name, $url) === 0) {
-								$name = \mb_substr($name, \mb_strlen($url));
-							}
-
-							// add to asset list
-							$assets[$url][] = [
-								'id' => $name,
-								'group' => $key,
-								'name' => $name
-							];
-
-							// extract assets from stylesheets
-							if (($items = $this->getStylesheetAssets($url.$name)) !== null) {
-								$assets[$url] = array_merge($assets[$url], $items);
-							}
-						}
-					}
-				}
-			}
-		}
-		return $assets[$url];
-	}
-
-	protected function getStylesheetAssets(string $url) : ?array {
-		$assets = [];
-		if (($css = \file_get_contents($url)) !== false) {
-			$types = [
-				'svg' => 'Images',
-				'gif' => 'Images',
-				'jpg' => 'Images',
-				'jpeg' => 'Images',
-				'png' => 'Images',
-				'webp' => 'Images',
-				'woff' => 'Fonts',
-				'woff2' => 'Fonts',
-				'eot' => 'Fonts',
-				'ttf' => 'Fonts'
-			];
-			$re = '/url\\(\\s*(.+\\.('.\implode('|', \array_keys($types)).'))(?:\\?[^\\s\\)])?\\s*\\)/i';
-			if (\preg_match_all($re, $css, $match, PREG_SET_ORDER)) {
-				\chdir($_SERVER['DOCUMENT_ROOT'].\parse_url(\dirname($url), PHP_URL_PATH));
-				$len = \strlen(ABSPATH);
-				foreach ($match AS $item) {
-					$path = \str_replace('\\', '/', \substr(\realpath($item[1]), $len));
-					$assets[] = [
-						'id' => $path,
-						'group' => $types[$item[2]],
-						'name' => $path
-					];
-				}
-			}
-		}
-		return $assets ? $assets : null;
 	}
 
 	protected function buildConfig(array $values = []) {

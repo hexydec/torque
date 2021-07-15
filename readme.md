@@ -1,5 +1,7 @@
 # Torque - Transport Optimisation Plugin for Wordpress
 
+<img src="torque.svg" alt="Torque" width="300" />
+
 A Wordpress plugin to optimise the transport of your website to the client. Reduce the load on your server and make your Wordpress website fly!
 
 **This project is currently alpha, check your deployment thoroughly before deploying into production**
@@ -8,15 +10,28 @@ A Wordpress plugin to optimise the transport of your website to the client. Redu
 
 Take advantage of best in class minification to squeeze every byte out of your HTML, combine this with the ability to optimally configure shared and client caches, and your website will not only be noticeably faster, your server will be under less load, and so you will be able to server more clients with your existing metal.
 
+The plugin also includes a suite of security features to help you secure your website, including full control over Content-Security-Policy, which enables you to control which domains can embed assets on your websites, and what domains you can connect to. This prevents malicious scripts from being able to run and more.
+
 ## Features
 
-- Minify your HTML (Uses [HTMLdoc](https://github.com/hexydec/htmldoc))
-- Minify and cache your inline CSS (Uses [CSSdoc](https://github.com/hexydec/cssdoc))
-- Minify and cache your inline Javascript (Uses [JSlite](https://github.com/hexydec/jslite))
+- Minification
+	- Minify your HTML (Uses [HTMLdoc](https://github.com/hexydec/htmldoc))
+	- Minify and cache your inline CSS (Uses [CSSdoc](https://github.com/hexydec/cssdoc))
+	- Minify and cache your inline Javascript (Uses [JSlite](https://github.com/hexydec/jslite))
+- Combine Files
+	- Combine and minify CSS files
+	- Combine and minify script files
 - Lazy load images
-- Set shared cache timeout
-- Set client cache timeout
-- Enable client to check whether their cached page is still valid, and send an HTTP 304 response if it is
+- Headers
+	- Set shared cache timeout
+	- Set client cache timeout
+	- Enable client to check whether their cached page is still valid, and send an HTTP 304 response if it is
+- Security
+	- Disable MIME sniffing
+	- XSS protection
+	- Control how the site can be embedded
+	- Enable HSTS to force browsers to only connect over HTTPS
+	- Specify Content-Security-Policy to control what domains can connect and embed content in your site
 - Administration panel to control all features, including all minification optimisations
 - Print minification stats in the console
 
