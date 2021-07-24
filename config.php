@@ -7,6 +7,12 @@ class config extends packages {
 	 * @var array $options A list of configuration options for the plugin
 	 */
 	protected $options = [
+		'overview' => [
+			'tab' => 'Overview',
+			'name' => 'Website Overview',
+			'desc' => 'A scan of your website\'s security and performance',
+			'options' => []
+		],
 		'settings' => [
 			'tab' => 'Settings',
 			'name' => 'Plugin Options',
@@ -492,7 +498,7 @@ class config extends packages {
 		'preload' => [
 			'tab' => 'Preload',
 			'name' => 'HTTP/2.0 Preload',
-			'desc' => 'Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Preload.',
+			'desc' => 'Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Preload, and it must be served over HTTPS. It will improve your load time without HTTP/2.0 support, but you will get more performance with support. Note that this will set a cookie called "torque-preload".',
 			'options' => [
 				'preload' => [
 					'label' => 'Preload Assets',
@@ -510,6 +516,12 @@ class config extends packages {
 	];
 
 	public function __construct() {
+
+		// render the overview
+		$this->options['overview']['html'] = function () : string {
+			$obj = new overview();
+			return $obj->draw();
+		};
 
 		// bind data
 		$url = \get_home_url().'/';

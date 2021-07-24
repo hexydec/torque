@@ -100,7 +100,9 @@ class admin extends config {
 				<?php
 				\settings_fields(self::SLUG);
 				\do_settings_sections(self::SLUG);
-				\submit_button(); ?>
+				if (!empty($this->options[$tab]['options'])) {
+					\submit_button();
+				} ?>
 			</form>
 		<?php });
 
@@ -115,6 +117,9 @@ class admin extends config {
 				// add section
 				\add_settings_section(self::SLUG.'_options_'.$g, $group['name'], function () use ($g, $group) {
 					echo $group['desc'];
+					if (isset($group['html'])) {
+						echo $group['html']();
+					}
 				}, self::SLUG);
 
 				// add options

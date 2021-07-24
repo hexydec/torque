@@ -68,7 +68,7 @@ class app extends config {
 	public function optimise() {
 
 		// are we going to minify the page?
-		if (($options = \get_option(self::SLUG)) !== false && (!empty($options['admin']) || !\is_admin())) {
+		if (!isset($_GET['notorque']) && ($options = \get_option(self::SLUG)) !== false && (!empty($options['admin']) || !\is_admin())) {
 
 			// turn off default cache control header
 			if ($options['maxage'] ?? false) {
@@ -101,7 +101,8 @@ class app extends config {
 			}
 
 			// HTTP/2.0 preload
-			if (!empty($options['preload']) || !empty($options['preloadstyle'])) {
+			$key = 'torque-preload';
+			if (empty($_COOKIE[$key]) && (!empty($options['preload']) || !empty($options['preloadstyle']))) {
 
 				// add combined stylesheet
 				if ($options['preloadstyle'] && $options['combinestyle']) {
@@ -111,6 +112,14 @@ class app extends config {
 
 				// set header
 				header('Link: '.$this->getPreloadLinks($options['preload']));
+				setcookie($key, '1', [
+					'expires' => time() + 31536000,
+					'path' => '/',
+					'domain' => $_SERVER['HTTP_HOST'],
+					'secure' => true,
+					'httponly' => true,
+					'samesite' => 'Lax'
+				]);
 			}
 
 			// check some options are set that require htmldoc
@@ -121,7 +130,7 @@ class app extends config {
 					break;
 				}
 			}
-			if ($htmldoc && \class_exists('\\hexydec\\html\\htmldoc') && !isset($_GET['notorque'])) {
+			if ($htmldoc && \class_exists('\\hexydec\\html\\htmldoc')) {
 
 				// create output buffer
 				\ob_start(function (string $html) use ($options) {
@@ -168,7 +177,7 @@ class app extends config {
 							}
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$doc->find("body")->append('<script src="'.\htmlspecialchars($url).'"></script>');
+							$doc->find("body")->append('<script src="'.\htmlspecialchars($url).'" defer></script>');
 						}
 
 						// build the minification options

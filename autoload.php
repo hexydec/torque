@@ -9,6 +9,7 @@
 		$namespace.'app' => __DIR__.'/app.php',
 		$namespace.'installExternal' => __DIR__.'/install-external.php',
 		$namespace.'install' => __DIR__.'/install.php',
+		$namespace.'overview' => __DIR__.'/overview.php'
 	];
 	if (isset($classes[$class])) {
 		return require($classes[$class]);

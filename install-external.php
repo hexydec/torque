@@ -11,7 +11,7 @@ class installExternal extends install {
 		} else {
 
 			// delete all directories
-			$this->cleanupDirectories(__DIR__, '/.git');
+			$this->cleanupDirectories(__DIR__, ['/.git', '/templates']);
 
 			// install external assets
 			$zip = new \ZipArchive();

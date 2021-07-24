@@ -3,15 +3,60 @@ namespace hexydec\torque;
 
 class assets {
 
+	protected static $pages = [];
 	protected static $assets = [];
 
+	protected static function getPage(string $url, array $headers = [], array &$output = []) {
+		$key = md5($url.json_encode($headers));
+		if (!isset(self::$pages[$key])) {
+			self::$pages[$key] = false;
+
+			// create context
+			$context = \stream_context_create([
+				'http' => [
+					'user_agent' => 'Mozilla/5.0 ('.PHP_OS.') hexydec\\torque '.packages::VERSION,
+					'header' => $headers
+				]
+			]);
+
+			// get the HTML and headers
+			if (($fp = \fopen($url, 'rb', false, $context)) !== false && ($file = \stream_get_contents($fp)) !== false) {
+
+				// retrieve headers
+				$outputHeaders = [];
+				$success = true; // default is for cache which won't have stream meta data
+				if (($meta = \stream_get_meta_data($fp)) !== false && isset($meta['wrapper_data'])) {
+					foreach ($meta['wrapper_data'] AS $item) {
+						if (\mb_strpos($item, ': ') !== false) {
+							list($key, $value) = \explode(': ', $item, 2);
+							$outputHeaders[\mb_strtolower($key)] = $value;
+						} elseif (\mb_strpos($item, 'HTTP/') === 0) {
+							$outputHeaders['status'] = \explode(' ', $item)[1];
+							$success = $outputHeaders['status'] == 200;
+						}
+					}
+
+					if ($success) {
+						self::$pages[$key] = [
+							'page' => $file,
+							'headers' => $outputHeaders
+						];
+					}
+				}
+			}
+		}
+		$output = self::$pages[$key]['headers'] ?? [];
+		return self::$pages[$key]['page'] ?? false;
+	}
+
 	public static function getPageAssets(string $url) {
-		if (!isset(self::$assets[$url])) {
+		$headers = [];
+		if (!isset(self::$assets[$url]) && ($html = self::getPage($url.'?notorque', $headers)) !== false) {
 			self::$assets[$url] = [];
 
 			// parse the page
 			$obj = new \hexydec\html\htmldoc();
-			if ($obj->open($url.'?notorque')) {
+			if ($obj->load($html)) {
 
 				// define what we are going to extract
 				$extract = [

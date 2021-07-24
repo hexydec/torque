@@ -1,0 +1,84 @@
+.torque-overview {
+	max-width: 800px;
+	padding: 0;
+	margin: 0;
+}
+
+.torque-overview__list {
+	border: 1px solid #c3c4c7;
+	border-bottom: 0;
+}
+
+input[type=checkbox].torque-overview__switch {
+	display: none;
+}
+
+.torque-overview__heading {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	padding: 15px;
+	background: #FFF;
+	border-bottom: 1px solid #c3c4c7;
+	transition: all 0.3s;
+	font-weight: bold;
+	color: #2c3338;
+}
+
+.torque-overview__heading-label:hover {
+	background: #f6f7f7;
+}
+
+.torque-overview__heading-title {
+	margin-right: auto;
+}
+
+.torque-overview__heading-status {
+	border: 1px solid #50575e;
+	padding: 5px;
+	border-radius: 5px;
+	background: #FFF;
+	line-height: 1em;
+}
+
+.torque-overview__heading-status--enabled {
+	background: green;
+	color: #FFF;
+	border: 0;
+}
+
+.torque-overview__heading-status--disabled {
+	background: red;
+	color: #FFF;
+	border: 0;
+}
+
+.torque-overview__heading-icon {
+	border: solid #50575e;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	width: .5rem;
+	height: .5rem;
+	margin-left: 15px;
+}
+
+.torque-overview__switch:checked + .torque-overview__heading > .torque-overview__heading-icon {
+	transform: rotate(225deg);
+}
+
+.torque-overview__item {
+	overflow: hidden;
+	max-height: 0;
+	box-sizing: border-box;
+	transition: max-height 0.5s;
+}
+
+.torque-overview__item-inner {
+	padding: 15px;
+	background: #FFF;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.torque-overview__switch:checked + .torque-overview__heading + .torque-overview__item {
+	max-height: 1000px;
+}
