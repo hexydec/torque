@@ -82,7 +82,7 @@ class app extends config {
 
 			// set X-XSS-Protection header
 			if ($options['xssprotection'] ?? false) {
-				header('X-XSS-Protection: 1');
+				header('X-XSS-Protection: 1; mode=block');
 			}
 
 			// set X-Iframe-Options header

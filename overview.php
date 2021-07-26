@@ -37,9 +37,19 @@ class overview extends assets {
 				'params' => [
 					[
 						'title' => 'MIME Type',
-						'badge' => function (array $data) {
-							return $data['content-type'];
-						}
+						'badge' => function (array $data, bool &$status = null) {
+							if (!empty($data['content-type'])) {
+								$value = $data['content-type'];
+								if (($pos = \strpos($value, ';')) !== false) {
+									$value = \substr($value, 0, $pos);
+								}
+								$status = in_array($value, ['text/html', 'application/xhtml+xml']);
+								return $value;
+							}
+							$status = false;
+							return 'Not Set';
+						},
+						'html' => '<p>This checks that your server is returning the correct MIME (Multipurpose Internet Mail Extensions) type for your web page, it is used to tell the browser what type of document you are sending the client, and should be set to <code>text/html</code> or <code>application/xhtml+xml</code>.</p>'
 					],
 					[
 						'title' => 'HTML Size (Uncompressed)',
@@ -47,7 +57,11 @@ class overview extends assets {
 							$status = $data['uncompressed'] < 100000;
 							return \number_format($data['uncompressed']).' bytes';
 						},
-						'html' => '<p>Reducing the overall size of your HTML will ensure the browser doesn\'t have to work too hard to render your page onto the user\'s screen</p>'
+						'html' => function (array $data) {
+							$html = '<p>Reducing the overall size of your HTML will ensure the browser doesn\'t have to work too hard to render your page onto the user\'s screen.</p>
+								<p>Currently your page is '.\number_format($data['uncompressed']).' bytes, '.($data['uncompressed'] < 100000 ? 'which isn\'t too big' : ($data['uncompressed'] < 200000 ? 'which is a little on the large side' : 'which is quite big, you should look at how you can reduce this to make sure the browser doesn\'t have to work so hard to render your page')).'.</p>';
+							return $html;
+						}
 					],
 					[
 						'title' => 'HTML Size (Compressed)',
@@ -109,7 +123,7 @@ class overview extends assets {
 									}
 								}
 								$html .= '</ul>';
-								$html = '<p>Your site links to '.$count.' stylesheets, '.($count < 10 ? 'which isn\'t too bad' : 'which is a little high').'. The total size of the assets was '.\number_format($total).' bytes.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
+								$html = '<p>Your site links to '.$count.' stylesheets, '.($count <= 5 ? 'which is nice and low' : ($count < 10 ? 'which isn\'t too bad' : 'which is a little high')).'. The total size of the assets was '.\number_format($total).' bytes.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
 								$html .= '<p>Reducing the number and size of your stylesheets not only makes the download faster, but will require less work for the browser to consume. This is especially important on mobile devices where resources are limited.</p>';
 								return $html;
 							}
@@ -143,7 +157,7 @@ class overview extends assets {
 									}
 								}
 								$html .= '</ul>';
-								$html = '<p>Your site links to '.$count.' scripts, '.($count < 10 ? 'which isn\'t too bad' : 'which is a little high').'. The total size of the assets was '.\number_format($total).' bytes.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
+								$html = '<p>Your site links '.$count.' scripts, '.($count <= 5 ? 'which is nice and low' : ($count < 10 ? 'which isn\'t too bad' : 'which is a little high')).'. The total size of the assets was '.\number_format($total).' bytes.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
 								$html .= '<p>Reducing the number and size of your scripts not only makes the download faster, but will require less work for the browser to consume. This is especially important on mobile devices where resources are limited.</p>';
 								return $html;
 							}
@@ -178,7 +192,8 @@ class overview extends assets {
 								}
 								$html .= '</ul>';
 								$html = '<p>Your site links to '.$count.' fonts. The total size of the assets is '.\number_format($total).' bytes'.($total > 100000 ? ', which is probably larger than it needs to be' : '').'.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
-								$html .= '<p>Improve your font usage by using less fonts in your design, optimising the size of the fonts by using the WOFF2 format, and reducing the number of symbols in the font file by building it with only common characters and discarding extra characters such as symbols.</p>';
+								$html .= '<p>Improve your font usage by using less fonts in your design, optimising the size of the fonts by using the WOFF2 format, and reducing the number of glyphs in the font file by building it with only common characters and discarding extra characters such as symbols.</p>
+								<p>If characters are on the page which do not have corresponding glyphs in the font file, a fallback font will be used, which can be specified in your CSS file.</p>';
 								return $html;
 							}
 							return null;
@@ -255,6 +270,7 @@ class overview extends assets {
 						'title' => 'Browser Cache',
 						'badge' => function (array $data, ?bool &$enabled = null) {
 							if ($data['cache-control'] && ($pos = strpos($data['cache-control'], 'max-age=')) !== false) {
+								$enabled = true;
 								$pos += 8;
 								$end = strpos($data['cache-control'], ',', $pos);
 								return ($end !== false ? substr($data['cache-control'], $pos, $end - $pos) : substr($data['cache-control'], $pos)).' Secs';
@@ -262,7 +278,8 @@ class overview extends assets {
 							$enabled = false;
 							return 'disabled';
 						},
-						'html' => '<p>This tells the browser how long to store a webpage in local cache before asking the server if there is a fresh copy.</p>'
+						'html' => '<p>This tells the browser how long to store a webpage in local cache before asking the server if there is a fresh copy.</p>
+							<p>Setting this to 0 is a preferred option, unless your site is not often updated. This ensures that the client always sees the most up-to-date version of your pages. If you enable Etags, the browser can check back with the server to see if it has been updated after the time has elapsed, and if it hasn\'t, use the cached version.</p>'
 					],
 					[
 						'title' => 'Shared Cache Life',
@@ -321,6 +338,7 @@ class overview extends assets {
 								}
 								$html .= '</ul>';
 							}
+							$html .= '<p>Note that HTTP/2.0 preload can only be enabled over HTTPS.</p>';
 							return $html;
 						}
 					]
@@ -334,21 +352,31 @@ class overview extends assets {
 						'badge' => function (array $data, bool &$status = null) {
 							$status = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 							return $status ? 'Enabled' : 'Not Enabled';
-						}
+						},
+						'html' => '<p>You need an SSL certificate to enable the HTTPS protocol, this certificate is then used to encrypt the communications between your server and the client.</p>
+							<p>There has been quite a push over the last few years to encrypt all website communications to prevent user\'s browsing habits being snooped on, and users are starting to expect websites to be encrypted.</p>
+							<p>You can get a free SSL certificate through services like LetsEncrypt!, you can also get auto-update software to keep your ceritificate up to date, as they normally issue them for 3 months at a time.</p>
+							<p>Hosting software such as Plesk or cPanel have an interface to generate free certificates.</p>'
 					],
 					[
-						'title' => 'MIME Type Sniffing',
+						'title' => 'Prevent MIME Type Sniffing',
 						'badge' => function (array $data, bool &$status = null) {
 							$status = $data['x-content-type-options'] === 'nosniff';
 							return $status ? 'Enabled' : 'Not Enabled';
-						}
+						},
+						'html' => '<p>When a client requests a file such as an image, your server normally also sends a MIME (Multipurpose Internet Mail Extensions) type. This is a string that tells the client what sort of file was sent (e.g. a JPEG image is <code>image/jpeg</code>) so that the browser handles it in the correct way.</p>
+							<p>Sometimes the MIME type that is advertised is not correct or not sent at all, so browsers will sometimes "sniff" the MIME type to work out what sort of file has been sent.</p>
+							<p>This setting prevents the browser from sniffing the MIME type, and forces it to use the advertised one. From a security perspective this is better as it prevents issues such as a file being advertised as one type, but actually being of another. For example you could send a file as an image when it is actually executable, which could enable malicious code being run on the client machine.</p>'
 					],
 					[
-						'title' => 'XSS Protection',
+						'title' => 'Cross Site Scripting Protection',
 						'badge' => function (array $data, bool &$status = null) {
 							$status = !empty($data['x-xss-protection']);
 							return $status ? 'Enabled' : 'Not Enabled';
-						}
+						},
+						'html' => '<p>Stops the page from loading, or filters out malicious content when a reflected Cross Site Scripting (XSS) attack is detected.</p>
+							<p>This type of attack works when information sent in the querystring part of the URL (page.html?[Querystring]) exploits the code on the target page, where the querystring payload is echoed on the page without being escaped. This can enable an attacker to inject a malicious script onto the target website, normally to steal data. All the attacker has to do is get the user to click a specially crafted link.</p>
+							<p>This should be disabled if you are confident that no exploitable code exists, otherwise enabled. On modern browsers, this type of attack is largely mitigated thorugh the use of a strong Content Security Policy (CSP), especially where <code>\'unsafe-inline\'</code> is disabled (Although this mostly is not possible in Wordpress, depending on your theme and plugins). However, limiting the domains that can host scripts on your site with a CSP does limit the attack vector.</p>'
 					],
 					[
 						'title' => 'Website Embedding',
@@ -360,21 +388,28 @@ class overview extends assets {
 								'sameorigin' => 'Allowed only for own domain'
 							];
 							return $options[$data['x-iframe-options']] ?? 'Not Enabled';
-						}
+						},
+						'html' => '<p>Prevents other websites from embedding your website within an iframe. This is useful to stop other websites presenting your content as their own, or wrapping it with other content.</p>
+							<p>Note that this setting is obsoleted by the <code>frame-ancestors</code> part of a Content-Security-Policy (CSP).</p>'
 					],
 					[
 						'title' => 'Content Security Policy',
 						'badge' => function (array $data, bool &$status = null) {
 							$status = !empty($data['content-security-policy']);
 							return $status ? 'Setup' : 'Not Setup';
-						}
+						},
+						'html' => '<p>A Content Security Policy (CSP) is sent to the client with each page, and tells the browser where assets are allowed to originate from, or how they can be embedded.</p>
+							<p>This setting is the most important setting for improving the security of your website, as for example even if a malicious script was injected into your site that originated from an unauthorised domain, the browser would not run it.</p>
+							<p>A CSP can specify authorised domains for different types of assets such as styles, scripts, images and more. It is highly recommended that your fully specify a strong CSP that only allows the domains your site requires for each asset type.</p>'
 					],
 					[
 						'title' => 'Force SSL',
 						'badge' => function (array $data, bool &$status = null) {
 							$status = !empty($data['strict-transport-security']);
 							return $status ? \number_format($data['strict-transport-security']).' secs' : 'Not Enabled';
-						}
+						},
+						'html' => '<p>This setting tells the browser to only connect to this website over an encrypted channel. With this setting in place, once a user views your website, any subsequent views will only be allowed over HTTPS, for the amount of seconds specified.</p>
+							<p>If you plan to deliver your website over HTTPS only, you should enable this setting.</p>'
 					]
 				]
 			]

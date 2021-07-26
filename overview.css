@@ -35,20 +35,20 @@ input[type=checkbox].torque-overview__switch {
 
 .torque-overview__heading-status {
 	border: 1px solid #50575e;
-	padding: 5px;
+	padding: 5px 10px;
 	border-radius: 5px;
 	background: #FFF;
 	line-height: 1em;
 }
 
 .torque-overview__heading-status--enabled {
-	background: green;
+	background: #00713d;
 	color: #FFF;
 	border: 0;
 }
 
 .torque-overview__heading-status--disabled {
-	background: red;
+	background: #d62330;
 	color: #FFF;
 	border: 0;
 }
