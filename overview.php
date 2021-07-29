@@ -58,7 +58,8 @@ class overview extends assets {
 							return \number_format($data['uncompressed']).' bytes';
 						},
 						'html' => function (array $data) {
-							$html = '<p>Reducing the overall size of your HTML will ensure the browser doesn\'t have to work too hard to render your page onto the user\'s screen.</p>
+							$html = '<p>This is the size of your homepage in bytes.</p>
+								<p>Reducing the overall size of your HTML will ensure the browser doesn\'t have to work too hard to render your page onto the user\'s screen.</p>
 								<p>Currently your page is '.\number_format($data['uncompressed']).' bytes, '.($data['uncompressed'] < 100000 ? 'which isn\'t too big' : ($data['uncompressed'] < 200000 ? 'which is a little on the large side' : 'which is quite big, you should look at how you can reduce this to make sure the browser doesn\'t have to work so hard to render your page')).'.</p>';
 							return $html;
 						}
@@ -66,17 +67,53 @@ class overview extends assets {
 					[
 						'title' => 'HTML Size (Compressed)',
 						'badge' => function (array $data) {
-							if (!empty($data['encoding'])) {
-								return $data['compressed'] ? \number_format($data['compressed']) : null;
+							if (!empty($data['compressed'])) {
+								return \number_format($data['compressed']).' bytes';
 							}
 							return null;
-						}
+						},
+						'html' => '<p>This is the size of the payload that is sent to the client after your page has been compressed.</p>'
 					],
 					[
 						'title' => 'Compression Ratio',
-						'badge' => function (array $data) {
-							if (!empty($data['encoding'])) {
-								return number_format((100 / $data['uncompressed']) * $data['compressed'], 1).'%';
+						'badge' => function (array $data, ?bool &$status = null) {
+							if (!empty($data['compressed'])) {
+								$ratio = 100 - ((100 / $data['uncompressed']) * $data['compressed']);
+								$status = $ratio > 50;
+								return number_format($ratio, 1).'%';
+							}
+							return null;
+						},
+						'html' => '<p>This is the compression ratio achieved by compressing your HTML page when it is sent to the client. You should expect around a 70% compression ratio.</p>'
+					],
+					[
+						'title' => 'Compression Algorithm',
+						'badge' => function (array $data, ?bool &$status = null) {
+							if (!empty($data['content-encoding'])) {
+								$values = [
+									'deflate' => 'Deflate',
+									'gzip' => 'Gzip',
+									'br' => 'Brotli'
+								];
+								$status = $data['content-encoding'] === 'gzip' ? null : $data['content-encoding'] === 'br';
+								return $values[$data['content-encoding']];
+							}
+							return null;
+						},
+						'html' => function (array $data) {
+							if (!empty($data['content-encoding'])) {
+								$html = '<p>The algorithm that is used to compress your page will determine the compression ratio.</p>';
+								if ($data['content-encoding'] === 'deflate') {
+									$html .= '<p>Your page is being compressed using the Deflate algorithm, this is an older standard algorithm that has mostly been phased out due to implementation issues.</p>';
+								} elseif ($data['content-encoding'] === 'gzip') {
+									$html .= '<p>Your page is being compressed using the Gzip algorithm, this is the most common type of transport compression used on the internet.</p>';
+								} elseif ($data['content-encoding'] === 'br') {
+									$html .= '<p>Your page is being compressed using the Brotli algorithm, this is the newest compression algorithm that browsers support, and will give you the besst compression ratio.</p>';
+								}
+								if ($data['content-encoding'] !== 'br') {
+									$html .= '<p>To get better compression use the Brotli algorithm, it has a built in dictionary of common strings which doesn\'t need to be transmitted with the payload, resulting in up to 25% better compression. But it is much newer, and so your host may not support it yet.</p>';
+								}
+								return $html;
 							}
 							return null;
 						}
@@ -269,14 +306,14 @@ class overview extends assets {
 					[
 						'title' => 'Browser Cache',
 						'badge' => function (array $data, ?bool &$enabled = null) {
-							if ($data['cache-control'] && ($pos = strpos($data['cache-control'], 'max-age=')) !== false) {
+							if (!empty($data['cache-control']) && ($pos = \strpos($data['cache-control'], 'max-age=')) !== false) {
 								$enabled = true;
 								$pos += 8;
-								$end = strpos($data['cache-control'], ',', $pos);
-								return ($end !== false ? substr($data['cache-control'], $pos, $end - $pos) : substr($data['cache-control'], $pos)).' Secs';
+								$end = \strpos($data['cache-control'], ',', $pos);
+								return ($end !== false ? \substr($data['cache-control'], $pos, $end - $pos) : \substr($data['cache-control'], $pos)).' Secs';
 							}
 							$enabled = false;
-							return 'disabled';
+							return 'Disabled';
 						},
 						'html' => '<p>This tells the browser how long to store a webpage in local cache before asking the server if there is a fresh copy.</p>
 							<p>Setting this to 0 is a preferred option, unless your site is not often updated. This ensures that the client always sees the most up-to-date version of your pages. If you enable Etags, the browser can check back with the server to see if it has been updated after the time has elapsed, and if it hasn\'t, use the cached version.</p>'
@@ -284,7 +321,7 @@ class overview extends assets {
 					[
 						'title' => 'Shared Cache Life',
 						'badge' => function (array $data, bool &$status = null) {
-							if ($data['cache-control'] && ($pos = \strpos($data['cache-control'], 's-maxage=')) !== false) {
+							if (!empty($data['cache-control']) && ($pos = \strpos($data['cache-control'], 's-maxage=')) !== false) {
 								$pos += 9;
 								$end = \strpos($data['cache-control'], ',', $pos);
 								$value = $end !== false ? \substr($data['cache-control'], $pos, $end - $pos) : \substr($data['cache-control'], $pos);
@@ -396,7 +433,7 @@ class overview extends assets {
 						'title' => 'Content Security Policy',
 						'badge' => function (array $data, bool &$status = null) {
 							$status = !empty($data['content-security-policy']);
-							return $status ? 'Setup' : 'Not Setup';
+							return $status ? 'Configured' : 'Not Configured';
 						},
 						'html' => '<p>A Content Security Policy (CSP) is sent to the client with each page, and tells the browser where assets are allowed to originate from, or how they can be embedded.</p>
 							<p>This setting is the most important setting for improving the security of your website, as for example even if a malicious script was injected into your site that originated from an unauthorised domain, the browser would not run it.</p>
@@ -441,7 +478,8 @@ class overview extends assets {
 	}
 
 	protected function drawTable(array $config, array $data) {
-		\wp_enqueue_style('admin-styles', \mb_substr(str_replace('\\', '/', __DIR__), mb_strlen(ABSPATH) - 1).'/overview.css');
+		$css = str_replace('\\', '/', __DIR__).'/stylesheets/overview.css';
+		\wp_enqueue_style('admin-styles', \mb_substr($css, mb_strlen(ABSPATH) - 1), [], \filemtime($css));
 
 		$html = '<section class="torque-overview">';
 		foreach ($config AS $g => $group) {

@@ -3,9 +3,6 @@ namespace hexydec\torque;
 
 class app extends config {
 
-	public function __construct() {
-	}
-
 	/**
 	 * Renders Javascript that outputs the minification stats to the console
 	 *
@@ -106,13 +103,13 @@ class app extends config {
 
 				// add combined stylesheet
 				if ($options['preloadstyle'] && $options['combinestyle']) {
-					$file = __DIR__.'/build/'.\md5(implode(',', $options['combinestyle'])).'.css';
+					$file = __DIR__.'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
 					$options['preload'][] = \str_replace('\\', '/', \mb_substr($file, \mb_strlen(ABSPATH)).'?'.\filemtime($file));
 				}
 
 				// set header
-				header('Link: '.$this->getPreloadLinks($options['preload']));
-				setcookie($key, '1', [
+				\header('Link: '.$this->getPreloadLinks($options['preload']));
+				\setcookie($key, '1', [
 					'expires' => time() + 31536000,
 					'path' => '/',
 					'domain' => $_SERVER['HTTP_HOST'],

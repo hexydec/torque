@@ -1,10 +1,10 @@
 # Torque - Transport Optimisation Plugin for Wordpress
 
-<img src="torque.svg" alt="Torque" width="300" />
+<img src="graphics/torque.svg" alt="Torque" width="300" />
 
 A Wordpress plugin to optimise the transport of your website to the client. Reduce the load on your server and make your Wordpress website fly!
 
-**This project is currently alpha, check your deployment thoroughly before deploying into production**
+**This project is currently beta, check your deployment thoroughly before deploying into production**
 
 ## Description
 
@@ -14,13 +14,19 @@ The plugin also includes a suite of security features to help you secure your we
 
 ## Features
 
+- Site Analysis
+	- Environment information
+	- Page information such as MIME type, output size and compression ratio
+	- Asset counts and sizes with recommendations
+	- Performance metrics with descriptions and recommendations
+	- Security metrics with descriptions and recommendations
 - Minification
 	- Minify your HTML (Uses [HTMLdoc](https://github.com/hexydec/htmldoc))
 	- Minify and cache your inline CSS (Uses [CSSdoc](https://github.com/hexydec/cssdoc))
 	- Minify and cache your inline Javascript (Uses [JSlite](https://github.com/hexydec/jslite))
 - Combine Files
 	- Combine and minify CSS files
-	- Combine and minify script files
+	- Combine and minify Javascript files
 - Lazy load images
 - Headers
 	- Set shared cache timeout

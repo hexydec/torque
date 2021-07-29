@@ -637,7 +637,7 @@ class config extends packages {
 		];
 	}
 
-	protected function buildConfig(array $values = []) {
+	public function buildConfig(array $values = []) {
 		if (($current = \get_option(self::SLUG)) === false) {
 			$current = [];
 		}

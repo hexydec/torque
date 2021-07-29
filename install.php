@@ -3,12 +3,12 @@ namespace hexydec\torque;
 
 class install {
 
-	public static function install() {
+	public function install() {
 
 		// install the config options
 		$obj = new config();
 		$config = $obj->buildConfig();
-		update_option(config::SLUG, $config, true);
+		\update_option(config::SLUG, $config, true);
 	}
 
 	/**
@@ -17,6 +17,6 @@ class install {
 	 * @return void
 	 */
 	public static function uninstall() : void {
-		delete_option(config::SLUG);
+		\delete_option(config::SLUG);
 	}
 }

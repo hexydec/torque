@@ -84,7 +84,7 @@ class admin extends config {
 		// add admin page
 		\add_options_page('Torque - Optimise the transport of your website', 'Torque', 'manage_options', self::SLUG, function () use ($tab) {
 			$folder = \str_replace('\\', '/', \mb_substr(__DIR__, \mb_strlen($_SERVER['DOCUMENT_ROOT']))).'/'; ?>
-			<h1 style="display:flex;align-items:center;"><img src="<?= \htmlspecialchars($folder); ?>torque-icon.svg" alt="Torque" style="width:40px;margin-right:10px" />Torque Configuration</h1>
+			<h1 style="display:flex;align-items:center;"><img src="<?= \htmlspecialchars($folder); ?>graphics/torque-icon.svg" alt="Torque" style="width:40px;margin-right:10px" />Torque Configuration</h1>
 			<form action="options.php" method="post" accept-charset="<?= \htmlspecialchars(\mb_internal_encoding()); ?>">
 				<input type="hidden" name="tab" value="<?= \htmlspecialchars($tab); ?>" />
 				<nav class="nav-tab-wrapper">
