@@ -1,4 +1,9 @@
 <?php
+/**
+ * A class for storing and manipulating the application configuration
+ *
+ * @package hexydec/torque
+ */
 namespace hexydec\torque;
 
 class config extends packages {
@@ -355,10 +360,10 @@ class config extends packages {
 				]
 			]
 		],
-		'headers' => [
-			'tab' => 'Headers',
-			'name' => 'Headers',
-			'desc' => 'Control how your site site delivered, how proxies cache your site, and how browsers cache it',
+		'cache' => [
+			'tab' => 'Caching',
+			'name' => 'Caching',
+			'desc' => 'Control how proxies cache your site, and how browsers cache it',
 			'options' => [
 				'maxage' => [
 					'label' => 'Browser Cache',
@@ -515,6 +520,9 @@ class config extends packages {
 		]
 	];
 
+	/**
+	 * Constructs the config object - updates config items that require callbacks
+	 */
 	public function __construct() {
 
 		// render the overview
@@ -524,7 +532,9 @@ class config extends packages {
 		};
 
 		// bind data
-		$url = \get_home_url().'/';
+		$url = \get_home_url().'/?notorque';
+
+		// datasource for selecting assets to preload
 		$this->options['preload']['options']['preload']['datasource'] = function () use ($url) {
 			if (($assets = assets::getPageAssets($url)) !== false) {
 
@@ -543,6 +553,8 @@ class config extends packages {
 			}
 			return false;
 		};
+
+		// datasource for selecting which assets to combine
 		$this->options['settings']['options']['combinestyle']['datasource'] = function () use ($url) {
 			if (($assets = assets::getPageAssets($url)) !== false) {
 				$filtered = [];
@@ -555,6 +567,8 @@ class config extends packages {
 			}
 			return false;
 		};
+
+		// callback to create the combined stylesheet on save
 		$this->options['settings']['options']['combinestyle']['onsave'] = function (array $value, array $options) {
 			if ($value) {
 				$css = '';
@@ -590,6 +604,8 @@ class config extends packages {
 			}
 			return false;
 		};
+
+		// datasource for selecting which scripts to combine
 		$this->options['settings']['options']['combinescript']['datasource'] = function () use ($url) {
 			if (($assets = assets::getPageAssets($url)) !== false) {
 				$filtered = [];
@@ -602,6 +618,8 @@ class config extends packages {
 			}
 			return false;
 		};
+
+		// callback for saving the combined script
 		$this->options['settings']['options']['combinescript']['onsave'] = function (array $value, array $options) {
 			if ($value) {
 				$js = '';
@@ -631,13 +649,21 @@ class config extends packages {
 			}
 			return false;
 		};
+
+		// set CSP options to allow self
 		$this->options['csp']['options']['csp_setting']['values'][] = [
 			'id' => \get_current_user_id(),
 			'name' => 'Enabled for me only (Testing)'
 		];
 	}
 
-	public function buildConfig(array $values = []) {
+	/**
+	 * Builds the configuration into the save format
+	 *
+	 * @param array $values The flattened config array that is returned by the client
+	 * @return array The config array as it will be stored
+	 */
+	public function buildConfig(array $values = []) : array {
 		if (($current = \get_option(self::SLUG)) === false) {
 			$current = [];
 		}
@@ -673,12 +699,15 @@ class config extends packages {
 				}
 			}
 		}
-		// var_dump($config, $this->options['csp']['options']['csp_setting'], $values, $_POST);
-		// exit();
 		return $config;
 	}
 
-	protected function getTabs() {
+	/**
+	 * Retrieves a list of tab keys
+	 *
+	 * @return array An array of tab keys
+	 */
+	protected function getTabs() : array {
 		$tabs = [];
 		$keys = [];
 		foreach ($this->options AS $key => $item) {

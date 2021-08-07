@@ -1,10 +1,26 @@
 <?php
+/**
+ * Defines and autoloads the application's dependencies
+ *
+ * @package hexydec/torque
+ */
 namespace hexydec\torque;
 
 class packages {
 
+	/**
+	 * @var string SLUG A constant defining the slug that is used in the admin system to deliver the app
+	 */
 	public const SLUG = 'torque';
+
+	/**
+	 * @var string VERSION The version number of the application, this is used in the cache key for CSS/Javascript that is minified
+	 */
 	public const VERSION = '0.4.0';
+
+	/**
+	 * @var string INSTALLDIR The folder where the dependencies are stored
+	 */
 	public const INSTALLDIR = __DIR__.'/packages/';
 
 	/**
@@ -29,11 +45,17 @@ class packages {
 		]
 	];
 
-	public static function autoload() {
+	/**
+	 * Defines an autoloader to load the application's dependencies
+	 *
+	 * @return void
+	 */
+	public static function autoload() : void {
 		\spl_autoload_register(function (string $class) : bool {
+			$dir = self::INSTALLDIR;
 			foreach (self::$packages AS $key => $item) {
-				if ($key === $class && \file_exists(self::INSTALLDIR.$item['autoload'])) {
-					return require(self::INSTALLDIR.$item['autoload']);
+				if ($key === $class && \file_exists($dir.$item['autoload'])) {
+					return require($dir.$item['autoload']);
 				}
 			}
 			return false;

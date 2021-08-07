@@ -1,13 +1,23 @@
 <?php
+/**
+ * When the plugin is not bundled with dependencies (and this file), this downloads the dependencies
+ *
+ * @package hexydec/torque
+ */
 namespace hexydec\torque;
 
 class installExternal extends packages {
 
-	public function install() {
+	/**
+	 * Cleans up the packages directory, installs dependencies, and installs the default configuration
+	 *
+	 * @return void
+	 */
+	public function install() : void {
 
 		// reserve a temporary file
 		if (($tmp = \tempnam(\sys_get_temp_dir(), 'hxd')) === false) {
-			wp_die('Could not create temporary file');
+			\wp_die('Could not create temporary file');
 		} else {
 
 			// delete all directories

@@ -1,9 +1,19 @@
 <?php
+/**
+ * Renders the administration interface for the Torque Wordpress plugin
+ *
+ * @package hexydec/torque
+ */
 namespace hexydec\torque;
 
 class admin extends config {
 
-	protected function getCurrentTab() {
+	/**
+	 * Retrieves the currently selected tab from the querystring or POST data, or the first avaialble tab
+	 *
+	 * @return string The code name of the current tab
+	 */
+	protected function getCurrentTab() : string {
 
 		// get the current tab
 		$tabs = $this->getTabs();
@@ -11,7 +21,12 @@ class admin extends config {
 		return isset($tab) && in_array($tab, $tabs) ? $tab : $tabs[0];
 	}
 
-	public function menu() {
+	/**
+	 * Registers the update callback to sanitise and update the configuration settings
+	 *
+	 * @return void
+	 */
+	public function update() : void {
 
 		// register field controls
 		\register_setting(self::SLUG, self::SLUG, [
@@ -78,12 +93,19 @@ class admin extends config {
 		]);
 	}
 
-	public function draw() {
+	/**
+	 * Renders the admin page
+	 *
+	 * @return void
+	 */
+	public function draw() : void {
 		$tab = $this->getCurrentTab();
 
 		// add admin page
 		\add_options_page('Torque - Optimise the transport of your website', 'Torque', 'manage_options', self::SLUG, function () use ($tab) {
-			$folder = \str_replace('\\', '/', \mb_substr(__DIR__, \mb_strlen($_SERVER['DOCUMENT_ROOT']))).'/'; ?>
+			$folder = \str_replace('\\', '/', \mb_substr(__DIR__, \mb_strlen($_SERVER['DOCUMENT_ROOT']))).'/';
+
+			// render headers and tabs ?>
 			<h1 style="display:flex;align-items:center;"><img src="<?= \htmlspecialchars($folder); ?>graphics/torque-icon.svg" alt="Torque" style="width:40px;margin-right:10px" />Torque Configuration</h1>
 			<form action="options.php" method="post" accept-charset="<?= \htmlspecialchars(\mb_internal_encoding()); ?>">
 				<input type="hidden" name="tab" value="<?= \htmlspecialchars($tab); ?>" />
@@ -98,6 +120,8 @@ class admin extends config {
 					} ?>
 				</nav>
 				<?php
+
+				// render current tab and submit button
 				\settings_fields(self::SLUG);
 				\do_settings_sections(self::SLUG);
 				if (!empty($this->options[$tab]['options'])) {
@@ -191,7 +215,14 @@ class admin extends config {
 		}
 	}
 
-	protected function getDatasource(string $group, string $key) {
+	/**
+	 * Retrieves the datasource attached to a configured control
+	 *
+	 * @param string $group The key of the group in config::$options to retrieve the data from
+	 * @param string $key The key of the field within the selected group to retrieve the data from
+	 * @return array An array containing arrays of values, each with 'id', 'group', and 'name'
+	 */
+	protected function getDatasource(string $group, string $key) : array {
 		if (isset($this->options[$group]['options'][$key])) {
 			if (empty($this->options[$group]['options'][$key]['values']) && !empty($this->options[$group]['options'][$key]['datasource'])) {
 				$this->options[$group]['options'][$key]['values'] = \call_user_func($this->options[$group]['options'][$key]['datasource']);

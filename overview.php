@@ -1,16 +1,21 @@
 <?php
+/**
+ * Generates the overview page to analyse the website
+ *
+ * @package hexydec/torque
+ */
 namespace hexydec\torque;
 
 class overview extends assets {
 
-	protected $config = [
-		'headers' => [
-			'server' => 'Server',
-			'x-powered-by' => 'Environment',
-			'encoding' => 'Compression'
-		]
-	];
+	/**
+	 * @var array $config Stores the configuration for the overview page
+	 */
+	protected $config = [];
 
+	/**
+	 * Specifies the configuration for the overview page
+	 */
 	public function __construct() {
 		$this->config = [
 			[
@@ -137,9 +142,11 @@ class overview extends assets {
 						'header' => 'assets',
 						'badge' => function (array $data, bool &$status = null) {
 							$count = 0;
-							foreach ($data['assets'] AS $item) {
-								if ($item['group'] === 'Stylesheets') {
-									$count++;
+							if ($data['assets']) {
+								foreach ($data['assets'] AS $item) {
+									if ($item['group'] === 'Stylesheets') {
+										$count++;
+									}
 								}
 							}
 							$status = $count < 10;
@@ -171,9 +178,11 @@ class overview extends assets {
 						'title' => 'Scripts',
 						'badge' => function (array $data, bool &$status = null) {
 							$count = 0;
-							foreach ($data['assets'] AS $item) {
-								if ($item['group'] === 'Scripts') {
-									$count++;
+							if ($data['assets']) {
+								foreach ($data['assets'] AS $item) {
+									if ($item['group'] === 'Scripts') {
+										$count++;
+									}
 								}
 							}
 							$status = $count < 10;
@@ -205,9 +214,11 @@ class overview extends assets {
 						'title' => 'Fonts',
 						'badge' => function (array $data, bool &$status = null) {
 							$count = 0;
-							foreach ($data['assets'] AS $item) {
-								if ($item['group'] === 'Fonts') {
-									$count++;
+							if ($data['assets']) {
+								foreach ($data['assets'] AS $item) {
+									if ($item['group'] === 'Fonts') {
+										$count++;
+									}
 								}
 							}
 							$status = $count < 10;
@@ -240,9 +251,11 @@ class overview extends assets {
 						'title' => 'Images',
 						'badge' => function (array $data, bool &$status = null) {
 							$count = 0;
-							foreach ($data['assets'] AS $item) {
-								if ($item['group'] === 'Images') {
-									$count++;
+							if ($data['assets']) {
+								foreach ($data['assets'] AS $item) {
+									if ($item['group'] === 'Images') {
+										$count++;
+									}
 								}
 							}
 							$status = $count < 10;
@@ -453,6 +466,13 @@ class overview extends assets {
 		];
 	}
 
+	/**
+	 * Extracts assets hrefs from a Link header
+	 *
+	 * @param string $link A string specifying the Link header
+	 * @param string $type If specified, filters the link assets by type, or null for all
+	 * @return array An array of assets, each item will be a array containing 'url' and keys for any other values specified in the link header
+	 */
 	protected function getLinkAssets(string $link, ?string $type = null) : ?array {
 		$assets = [];
 		if (!empty($link)) {
@@ -477,9 +497,16 @@ class overview extends assets {
 		return $assets ? $assets : null;
 	}
 
-	protected function drawTable(array $config, array $data) {
-		$css = str_replace('\\', '/', __DIR__).'/stylesheets/overview.css';
-		\wp_enqueue_style('admin-styles', \mb_substr($css, mb_strlen(ABSPATH) - 1), [], \filemtime($css));
+	/**
+	 * Renders the overview data
+	 *
+	 * @param array $$config An array specifying what to render
+	 * @param array $$data An array containing data colected from the headers of the retrieved page
+	 * @return string HTML representing the input configuration and data
+	 */
+	protected function drawOverview(array $config, array $data) : string {
+		$css = \str_replace('\\', '/', __DIR__).'/stylesheets/overview.css';
+		\wp_enqueue_style('admin-styles', \mb_substr($css, \mb_strlen(ABSPATH) - 1), [], \filemtime($css));
 
 		$html = '<section class="torque-overview">';
 		foreach ($config AS $g => $group) {
@@ -490,7 +517,7 @@ class overview extends assets {
 					$item['value'] = $data[$item['header']] ?? null;
 				}
 				if (isset($item['decorator'])) {
-					$item['value'] = call_user_func($item['decorator'], $item['value'], $data);
+					$item['value'] = \call_user_func($item['decorator'], $item['value'], $data);
 				}
 				$enabled = null;
 				$badge = isset($item['badge']) ? ($item['badge'] instanceof \Closure ? $item['badge']($data, $enabled) : $item['badge']) : null;
@@ -500,7 +527,7 @@ class overview extends assets {
 						<span class="torque-overview__heading-title">'.\htmlspecialchars($item['title']).'</span>';
 					if ($badge) {
 						$html .= '<span class="torque-overview__heading-status'.($enabled === null ? '' : ' torque-overview__heading-status--'.($enabled ? 'enabled' : 'disabled')).'">
-							'.htmlspecialchars($badge).'
+							'.\htmlspecialchars($badge).'
 						</span>';
 					}
 					if (($item['html'] ?? null) !== null) {
@@ -522,21 +549,34 @@ class overview extends assets {
 		return $html;
 	}
 
-	public function draw() : string {
+	/**
+	 * Compiles data about the homepage and sends it to the renderer
+	 *
+	 * @return string HTML representing the input configuration and data, or null if the page couldn't be retrieved
+	 */
+	public function draw() : ?string {
 		$url = \get_home_url().'/';
+
+		// define headers to enable compression
 		$headers = [
 			'Accept-Encoding: deflate,gzip,br'
 		];
 		$output = [];
-		$time = microtime(true);
+
+		// time how long it takes to get the page
+		$time = \microtime(true);
 		if (($html = $this->getPage($url, $headers, $output)) !== false) {
-			$output['time'] = microtime(true) - $time;
+			$output['time'] = \microtime(true) - $time;
 			$output['compressed'] = \strlen($html);
+
+			// get the uncompressed page
 			$uncompressed = $this->getPage($url);
 			$output['uncompressed'] = \strlen($uncompressed);
 			$output['assets'] = $this->getPageAssets($url);
-			// var_dump($output);
-			return $this->drawTable($this->config, $output);
+
+			// render the page
+			return $this->drawOverview($this->config, $output);
 		}
+		return null;
 	}
 }
