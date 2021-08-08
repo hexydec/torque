@@ -104,7 +104,14 @@ class assets {
 					]
 				];
 
+				// remove any query string
+				$prefix = $url;
+				if (($temp = \strstr($prefix, '?', true)) !== false) {
+					$prefix = $temp;
+				}
+
 				// extract each type
+				$assets = [];
 				foreach ($extract AS $key => $item) {
 					if (($nodes = $obj->find($item['selector'])) !== false) {
 
@@ -112,27 +119,44 @@ class assets {
 						foreach ($nodes AS $node) {
 
 							// extract the attribute value
-							$name = \strstr($node->attr($item['attr']), '?', true);
+							$name = $node->attr($item['attr']);
 
-							// normalise URL
-							if (\mb_strpos($name, $url) === 0) {
-								$name = \mb_substr($name, \mb_strlen($url));
+							// remove any query string
+							if (($temp = \strstr($name, '?', true)) !== false) {
+								$name = $temp;
 							}
 
-							// add to asset list
-							self::$assets[$url][] = [
-								'id' => $name,
-								'group' => $key,
-								'name' => $name
-							];
+							// normalise URL
+							if (\mb_strpos($name, $prefix) === 0) {
+								$name = \mb_substr($name, \mb_strlen($prefix));
+							}
 
-							// extract assets from stylesheets
-							if (($items = self::getStylesheetAssets($url.$name)) !== false) {
-								self::$assets[$url] = \array_merge(self::$assets[$url], $items);
+							// check if url is local
+							if (\mb_strpos($name, '//') === false && !\in_array($name, $assets)) {
+
+								// add to asset list
+								$assets[] = $name;
+								self::$assets[$url][] = [
+									'id' => $name,
+									'group' => $key,
+									'name' => $name
+								];
+
+								// extract assets from stylesheets
+								if ($key === 'Stylesheets' && ($items = self::getStylesheetAssets($prefix.$name)) !== false) {
+									foreach ($items AS $value) {
+										if (!\in_array($value['id'], $assets)) {
+											$assets[] = $value['id'];
+											self::$assets[$url][] = $value;
+										}
+									}
+								}
 							}
 						}
 					}
 				}
+				$keys = \array_column(self::$assets[$url], 'group');
+				\array_multisort($keys, SORT_DESC, self::$assets[$url]);
 			}
 		}
 		return self::$assets[$url] ?? false;
@@ -161,19 +185,21 @@ class assets {
 			];
 
 			// extract the URLs from the CSS
-			$re = '/url\\(\\s*(.+\\.('.\implode('|', \array_keys($types)).'))(?:\\?[^\\s\\)])?\\s*\\)/i';
+			$re = '/url\\(\\s*["\']?([^\\)]+\\.('.\implode('|', \array_keys($types)).'))(?:\\?[^\\s\\)])?["\']?\\s*\\)/i';
 			if (\preg_match_all($re, $css, $match, PREG_SET_ORDER)) {
 
 				// work out the path relative to the webroot
 				\chdir($_SERVER['DOCUMENT_ROOT'].\parse_url(\dirname($url), PHP_URL_PATH));
-				$len = \strlen(ABSPATH);
+				$len = \strlen(\get_home_path());
 				foreach ($match AS $item) {
-					$path = \str_replace('\\', '/', \substr(\realpath($item[1]), $len));
-					$assets[] = [
-						'id' => $path,
-						'group' => $types[$item[2]],
-						'name' => $path
-					];
+					if (($path = \realpath($item[1])) !== false) {
+						$path = \str_replace('\\', '/', \substr($path, $len));
+						$assets[] = [
+							'id' => $path,
+							'group' => $types[$item[2]],
+							'name' => $path
+						];
+					}
 				}
 			}
 		}
