@@ -103,7 +103,7 @@ class app extends config {
 			}
 
 			// set CSP
-			if (isset($options['csp']['setting']) && ($options['csp']['setting'] === 'enabled' || $options['csp']['setting'] == \get_current_user_id())) {
+			if (isset($options['csp']['setting']) && \in_array($options['csp']['setting'], ['enabled', \strval(\get_current_user_id())])) {
 				\header('Content-Security-Policy: '.$this->getContentSecurityPolicy($options['csp']));
 			}
 
@@ -114,7 +114,8 @@ class app extends config {
 				// add combined stylesheet
 				if ($options['preloadstyle'] && $options['combinestyle']) {
 					$file = __DIR__.'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
-					$options['preload'][] = \str_replace('\\', '/', \mb_substr($file, \mb_strlen(ABSPATH)).'?'.\filemtime($file));
+					$root = \dirname(\dirname(\dirname(__DIR__)));
+					$options['preload'][] = \str_replace('\\', '/', \mb_substr($file, \mb_strlen($root)).'?'.\filemtime($file));
 				}
 
 				// set header

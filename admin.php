@@ -188,7 +188,7 @@ class admin extends config {
 									$item['values'] = $this->getDatasource($g, $key);
 								}
 								$group = null; ?>
-								<select name="<?= \htmlspecialchars(self::SLUG.'['.$key.']'.($item['type'] === 'multiselect' ? '[]' : '')); ?>"<?= $item['type'] === 'multiselect' ? ' multiple="multiple" style="height:200px;"' : ''; ?>>
+								<select name="<?= \htmlspecialchars(self::SLUG.'['.$key.']'.($item['type'] === 'multiselect' ? '[]' : '')); ?>"<?= $item['type'] === 'multiselect' ? ' multiple="multiple" style="height:200px;width:95%;max-width:600px"' : ''; ?>>
 									<?php foreach ($item['values'] AS $option) {
 										if (($option['group'] ?? null) !== $group) {
 											if ($group) {

@@ -33,29 +33,31 @@ class config extends packages {
 					'label' => 'Minify CSS',
 					'type' => 'checkbox',
 					'description' => 'Enable minification of inline CSS within a <style> tag, and combined scripts',
-					'default' => true
+					'default' => false
 				],
 				'combinestyle' => [
 					'label' => 'Combine CSS',
 					'type' => 'multiselect',
 					'description' => 'Select which CSS files to combine and minify',
+					'default' => []
 				],
 				'minifyscript' => [
 					'label' => 'Minify Javascript',
 					'type' => 'checkbox',
 					'description' => 'Enable minification of inline Javascript within a <script> tag and combined scripts',
-					'default' => true
+					'default' => false
 				],
 				'combinescript' => [
 					'label' => 'Combine Javascript',
 					'type' => 'multiselect',
 					'description' => 'Select which Javascript files to combine and minify',
+					'default' => []
 				],
 				'lazyload' => [
 					'label' => 'Lazy Load Images',
 					'type' => 'checkbox',
 					'description' => 'Tell the browser to only load images when they are scrolled into view',
-					'default' => true
+					'default' => false
 				],
 				'admin' => [
 					'label' => 'Minify Admin System',
@@ -394,13 +396,13 @@ class config extends packages {
 					'label' => 'Set X-Content-Type-Options',
 					'description' => 'Tells the browser to use the advertised MIME type when deciding how to present content, without this the browser may "sniff" the content type, which may allow content to be delivered as a non-executable type, when the content is infact executable',
 					'type' => 'checkbox',
-					'default' => true
+					'default' => false
 				],
 				'xssprotection' => [
 					'label' => 'Set X-XSS-Protection',
 					'description' => 'Allows older browsers to block XSS attacks in certain circumstances (Set Content Security Polcy for modern browsers)',
 					'type' => 'checkbox',
-					'default' => true
+					'default' => false
 				],
 				'embedding' => [
 					'label' => 'Website Embedding',
@@ -411,7 +413,7 @@ class config extends packages {
 						['id' => 'deny', 'name' => 'Prevent site from being embedded'],
 						['id' => 'sameorigin', 'name' => 'Allow to be embedded on this domain only']
 					],
-					'default' => true
+					'default' => 'allow'
 				],
 				'hsts' => [
 					'label' => 'Force SSL', // Strict-Transport-Security
@@ -509,6 +511,7 @@ class config extends packages {
 					'label' => 'Preload Assets',
 					'description' => 'Select which assets to preload, make sure to pick assets that appear on EVERY page',
 					'type' => 'multiselect',
+					'default' => []
 				],
 				'preloadstyle' => [
 					'label' => 'Preload Combined Stylesheet',
@@ -533,6 +536,7 @@ class config extends packages {
 
 		// bind data
 		$url = \get_home_url().'/?notorque';
+		$dir = \dirname(\dirname(\dirname(__DIR__))).'/'; // can't use get_home_path() here
 
 		// datasource for selecting assets to preload
 		$this->options['preload']['options']['preload']['datasource'] = function () use ($url) {
@@ -569,19 +573,19 @@ class config extends packages {
 		};
 
 		// callback to create the combined stylesheet on save
-		$this->options['settings']['options']['combinestyle']['onsave'] = function (array $value, array $options) {
+		$this->options['settings']['options']['combinestyle']['onsave'] = function (array $value, array $options) use ($dir) {
 			if ($value) {
 				$css = '';
 				$obj = new \hexydec\css\cssdoc();
 
 				// minify each file
 				foreach ($value AS $item) {
-					if ($obj->open(ABSPATH.$item)) {
+					if ($obj->open($dir.$item)) {
 						$obj->minify($options['style'] ?? []);
 
 						// compile and rewrite URL's
-						$css .= \preg_replace_callback('/url\\([\'"]?+(?!data:)([^\\)]++)[\'"]?\\)/i', function (array $match) use ($item) {
-							\chdir(\dirname(ABSPATH.$item));
+						$css .= \preg_replace_callback('/url\\([\'"]?+(?!data:)([^\\)]++)[\'"]?\\)/i', function (array $match) use ($item, $dir) {
+							\chdir(\dirname($dir.$item));
 							$path = \realpath($match[1]);
 							return 'url('.\str_replace('\\', '/', \substr($path, \strlen($_SERVER['DOCUMENT_ROOT']))).')';
 						}, $obj->compile());
@@ -620,14 +624,14 @@ class config extends packages {
 		};
 
 		// callback for saving the combined script
-		$this->options['settings']['options']['combinescript']['onsave'] = function (array $value, array $options) {
+		$this->options['settings']['options']['combinescript']['onsave'] = function (array $value, array $options) use ($dir) {
 			if ($value) {
 				$js = '';
 				$obj = new \hexydec\jslite\jslite();
 
 				// minify each file
 				foreach ($value AS $item) {
-					if ($obj->open(ABSPATH.$item)) {
+					if ($obj->open($dir.$item)) {
 						$obj->minify($options['style'] ?? []);
 						$js .= ($js && $js[-1] !== '}' ? ';' : '').$obj->compile();
 					}

@@ -161,10 +161,10 @@ class overview extends assets {
 								$html = '<ul>';
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Stylesheets') {
-										$size = \filesize($dir.$item['name']);
+										$size = \file_exists($dir.$item['name']) ? \filesize($dir.$item['name']) : false;
 										$total += $size;
 										$count++;
-										$html .= '<li>'.basename($item['name']).' ('.number_format($size).' bytes)</li>';
+										$html .= '<li>'.basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
 									}
 								}
 								$html .= '</ul>';
@@ -192,15 +192,16 @@ class overview extends assets {
 						'html' => function (array $data) {
 							if ($data['assets']) {
 								$base = \get_home_url();
+								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
 								$html = '<ul>';
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Scripts') {
-										$size = \filesize(ABSPATH.$item['name']);
+										$size = \file_exists($dir.$item['name']) ? \filesize($dir.$item['name']) : false;
 										$total += $size;
 										$count++;
-										$html .= '<li>'.basename($item['name']).' ('.number_format($size).' bytes)</li>';
+										$html .= '<li>'.basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
 									}
 								}
 								$html .= '</ul>';
@@ -228,19 +229,20 @@ class overview extends assets {
 						'html' => function (array $data) {
 							if ($data['assets']) {
 								$base = \get_home_url();
+								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
 								$html = '<ul>';
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Fonts') {
-										$size = \filesize(ABSPATH.$item['name']);
+										$size = \file_exists($dir.$item['name']) ? \filesize($dir.$item['name']) : false;
 										$total += $size;
 										$count++;
-										$html .= '<li>'.basename($item['name']).' ('.number_format($size).' bytes)</li>';
+										$html .= '<li>'.basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
 									}
 								}
 								$html .= '</ul>';
-								$html = '<p>Your site links to '.$count.' fonts. The total size of the assets is '.\number_format($total).' bytes'.($total > 100000 ? ', which is probably larger than it needs to be' : '').'.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
+								$html = '<p>Your site links to '.$count.' fonts. The total size of the assets is '.\number_format($total).' bytes'.($total > 100000 ? ', which is probably larger than it needs to be, but if multiple formats are specified then the user\'s browser will only download some of them' : '').'.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
 								$html .= '<p>Improve your font usage by using less fonts in your design, optimising the size of the fonts by using the WOFF2 format, and reducing the number of glyphs in the font file by building it with only common characters and discarding extra characters such as symbols.</p>
 								<p>If characters are on the page which do not have corresponding glyphs in the font file, a fallback font will be used, which can be specified in your CSS file.</p>';
 								return $html;
@@ -265,19 +267,23 @@ class overview extends assets {
 						'html' => function (array $data) {
 							if ($data['assets']) {
 								$base = \get_home_url();
+								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
 								$html = '<ul>';
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Images') {
-										$size = \filesize(ABSPATH.$item['name']);
+										$size = \file_exists($dir.$item['name']) ? \filesize($dir.$item['name']) : false;
 										$total += $size;
 										$count++;
-										$html .= '<li>'.basename($item['name']).' ('.number_format($size).' bytes)</li>';
+										if ($size >= 50000) {
+											$html .= '<li>'.basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
+										}
 									}
 								}
 								$html .= '</ul>';
-								$html = '<p>Your site links to '.$count.' images'.($count > 20 ? ', which is a little high' : '').'. The total size of the assets is '.\number_format($total).' bytes'.($total > 1000000 ? ', which is probably larger than it needs to be' : '').', by enabling lazy loading of images can help offset the download size and number of assets by only loading then when the user scrolls them into view.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
+								$html = '<p>Your site links to '.$count.' images'.($count > 20 ? ', which is a little high' : '').'. The total size of the assets is '.\number_format($total).' bytes'.($total > 1000000 ? ', which is probably larger than it needs to be' : '').'.</p>
+								<p>Enabling lazy loading of images can help offset the download size and number of assets by only loading then when the user scrolls them into view.'.($html ? ' The largest images are:' : '').'</p>'.$html;
 								$html .= '<p>Images normally consume the largest percentage of download size and assets in most web pages, so reducing the number and optimising them can be an easy win to improve your websites performance.</p>';
 								return $html;
 							}
@@ -366,7 +372,7 @@ class overview extends assets {
 						},
 						'html' => function (array $data) {
 							$status = $data['x-cache-status'] ?? ($data['cf-cache-status'] ?? null);
-							return '<p>We tested your page to see if it sent back a header that indicated whether a static cache was enabled</p>';
+							return '<p>We tested your page to see if it sent back a header that indicated whether a static cache was enabled. When enabled, the cache manager normally adds a header to the response that indicates whether the cache was used.</p>';
 						}
 					],
 					[
@@ -507,7 +513,7 @@ class overview extends assets {
 	 */
 	protected function drawOverview(array $config, array $data) : string {
 		$css = \str_replace('\\', '/', __DIR__).'/stylesheets/overview.css';
-		\wp_enqueue_style('admin-styles', \mb_substr($css, \mb_strlen(ABSPATH) - 1), [], \filemtime($css));
+		\wp_enqueue_style('torque-overview', \get_home_url().\mb_substr($css, \mb_strlen(\get_home_path()) - 1), [], \filemtime($css));
 
 		$html = '<section class="torque-overview">';
 		foreach ($config AS $g => $group) {
@@ -568,11 +574,15 @@ class overview extends assets {
 		$time = \microtime(true);
 		if (($html = $this->getPage($url, $headers, $output)) !== false) {
 			$output['time'] = \microtime(true) - $time;
-			$output['compressed'] = \strlen($html);
 
 			// get the uncompressed page
-			$uncompressed = $this->getPage($url);
-			$output['uncompressed'] = \strlen($uncompressed);
+			if (!empty($headers['content-encoding'])) {
+				$uncompressed = $this->getPage($url);
+				$output['compressed'] = \strlen($html);
+				$output['uncompressed'] = \strlen($uncompressed);
+			} else {
+				$output['uncompressed'] = \strlen($html);
+			}
 			$output['assets'] = $this->getPageAssets($url);
 
 			// render the page
