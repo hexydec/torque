@@ -155,12 +155,13 @@ class overview extends assets {
 						'html' => function (array $data) {
 							if ($data['assets']) {
 								$base = \get_home_url();
+								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
 								$html = '<ul>';
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Stylesheets') {
-										$size = \filesize(ABSPATH.$item['name']);
+										$size = \filesize($dir.$item['name']);
 										$total += $size;
 										$count++;
 										$html .= '<li>'.basename($item['name']).' ('.number_format($size).' bytes)</li>';
