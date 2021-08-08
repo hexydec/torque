@@ -574,11 +574,15 @@ class overview extends assets {
 		$time = \microtime(true);
 		if (($html = $this->getPage($url, $headers, $output)) !== false) {
 			$output['time'] = \microtime(true) - $time;
-			$output['compressed'] = \strlen($html);
 
 			// get the uncompressed page
-			$uncompressed = $this->getPage($url);
-			$output['uncompressed'] = \strlen($uncompressed);
+			if (!empty($headers['content-encoding'])) {
+				$uncompressed = $this->getPage($url);
+				$output['compressed'] = \strlen($html);
+				$output['uncompressed'] = \strlen($uncompressed);
+			} else {
+				$output['uncompressed'] = \strlen($html);
+			}
 			$output['assets'] = $this->getPageAssets($url);
 
 			// render the page
