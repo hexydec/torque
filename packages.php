@@ -16,7 +16,7 @@ class packages {
 	/**
 	 * @var string VERSION The version number of the application, this is used in the cache key for CSS/Javascript that is minified
 	 */
-	public const VERSION = '0.4.0';
+	public const VERSION = '0.4.1';
 
 	/**
 	 * @var string INSTALLDIR The folder where the dependencies are stored
@@ -24,7 +24,9 @@ class packages {
 	public const INSTALLDIR = __DIR__.'/packages/';
 
 	/**
-	 * @var array $packages A list of external dependencies to be installed when the plugin is activated
+	 * @var array $packages A list of external dependencies to be installed when the plugin is activated and where their autoloaders are
+	 *
+	 * Note that external dependencies are only installed when install-external.php is available and the packages are not already bundled
 	 */
 	protected static $packages = [
 		'hexydec\\html\\htmldoc' => [
@@ -32,16 +34,16 @@ class packages {
 			'autoload' => 'htmldoc-master/src/autoload.php'
 		],
 		'hexydec\\css\\cssdoc' => [
-			'file' => 'https://github.com/hexydec/cssdoc/archive/refs/tags/0.5.1.zip',
-			'autoload' => 'cssdoc-0.5.1/src/autoload.php'
+			'file' => 'https://github.com/hexydec/cssdoc/archive/refs/heads/master.zip',
+			'autoload' => 'cssdoc-master/src/autoload.php'
 		],
 		'hexydec\\jslite\\jslite' => [
-			'file' => 'https://github.com/hexydec/jslite/archive/refs/tags/0.5.1.zip',
-			'autoload' => 'jslite-0.5.1/src/autoload.php'
+			'file' => 'https://github.com/hexydec/jslite/archive/refs/heads/master.zip',
+			'autoload' => 'jslite-master/src/autoload.php'
 		],
 		'hexydec\\tokens\\tokenise' => [
-			'file' => 'https://github.com/hexydec/tokenise/archive/refs/tags/0.4.1.zip',
-			'autoload' => 'tokenise-0.4.1/src/autoload.php'
+			'file' => 'https://github.com/hexydec/tokenise/archive/refs/heads/master.zip',
+			'autoload' => 'tokenise-master/src/autoload.php'
 		]
 	];
 
