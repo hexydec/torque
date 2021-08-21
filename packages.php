@@ -29,21 +29,29 @@ class packages {
 	 * Note that external dependencies are only installed when install-external.php is available and the packages are not already bundled
 	 */
 	protected static $packages = [
-		'hexydec\\html\\htmldoc' => [
+		'htmldoc' => [
+			'class' => 'hexydec\\html\\htmldoc',
 			'file' => 'https://github.com/hexydec/htmldoc/archive/refs/heads/master.zip',
-			'autoload' => 'htmldoc-master/src/autoload.php'
+			'extract' => 'htmldoc-master/src/',
+			'autoload' => 'htmldoc/autoload.php'
 		],
-		'hexydec\\css\\cssdoc' => [
+		'cssdoc' => [
+			'class' => 'hexydec\\css\\cssdoc',
 			'file' => 'https://github.com/hexydec/cssdoc/archive/refs/heads/master.zip',
-			'autoload' => 'cssdoc-master/src/autoload.php'
+			'extract' => 'cssdoc-master/src/',
+			'autoload' => 'cssdoc/autoload.php'
 		],
-		'hexydec\\jslite\\jslite' => [
+		'jslite' => [
+			'class' => 'hexydec\\jslite\\jslite',
 			'file' => 'https://github.com/hexydec/jslite/archive/refs/heads/master.zip',
-			'autoload' => 'jslite-master/src/autoload.php'
+			'extract' => 'jslite-master/src/',
+			'autoload' => 'jslite/autoload.php'
 		],
-		'hexydec\\tokens\\tokenise' => [
+		'tokenise' => [
+			'class' => 'hexydec\\tokens\\tokenise',
 			'file' => 'https://github.com/hexydec/tokenise/archive/refs/heads/master.zip',
-			'autoload' => 'tokenise-master/src/autoload.php'
+			'extract' => 'tokenise-master/src/',
+			'autoload' => 'tokenise/autoload.php'
 		]
 	];
 
@@ -56,7 +64,7 @@ class packages {
 		\spl_autoload_register(function (string $class) : bool {
 			$dir = self::INSTALLDIR;
 			foreach (self::$packages AS $key => $item) {
-				if ($key === $class && \file_exists($dir.$item['autoload'])) {
+				if ($item['class'] === $class && \file_exists($dir.$item['autoload'])) {
 					return require($dir.$item['autoload']);
 				}
 			}

@@ -112,6 +112,7 @@ class assets {
 
 				// extract each type
 				$assets = [];
+				$groups = [];
 				foreach ($extract AS $key => $item) {
 					if (($nodes = $obj->find($item['selector'])) !== false) {
 
@@ -136,7 +137,10 @@ class assets {
 
 								// add to asset list
 								$assets[] = $name;
-								self::$assets[$url][] = [
+								if (!isset($groups[$key])) {
+									$groups[$key] = [];
+								}
+								$groups[$key][] = [
 									'id' => $name,
 									'group' => $key,
 									'name' => $name
@@ -147,7 +151,10 @@ class assets {
 									foreach ($items AS $value) {
 										if (!\in_array($value['id'], $assets)) {
 											$assets[] = $value['id'];
-											self::$assets[$url][] = $value;
+											if (!isset($groups[$value['group']])) {
+												$groups[$value['group']] = [];
+											}
+											$groups[$value['group']][] = $value;
 										}
 									}
 								}
@@ -155,8 +162,9 @@ class assets {
 						}
 					}
 				}
-				$keys = \array_column(self::$assets[$url], 'group');
-				\array_multisort($keys, SORT_DESC, self::$assets[$url]);
+				foreach ($groups AS $item) {
+					self::$assets[$url] = \array_merge(self::$assets[$url], $item);
+				}
 			}
 		}
 		return self::$assets[$url] ?? false;
@@ -209,5 +217,81 @@ class assets {
 			}
 		}
 		return $assets ? $assets : false;
+	}
+
+	public static function buildCss(array $files, string $target, ?array $minify = null) : bool {
+
+		// get the CSS documents and rewrite the URL's
+		$css = '';
+		foreach ($files AS $item) {
+			if (($file = \file_get_contents($dir.$item)) !== false) {
+				$css .= \preg_replace_callback('/url\\([\'"]?+(?!data:)([^\\)]++)[\'"]?\\)/i', function (array $match) use ($item) {
+					\chdir(\dirname($item));
+					$path = \realpath($match[1]);
+					return 'url('.\str_replace('\\', '/', \substr($path, \strlen($_SERVER['DOCUMENT_ROOT']))).')';
+				}, $file);
+			}
+		}
+
+		// write the file
+		if ($css) {
+
+			// minify
+			if ($minify !== null) {
+				$obj = new \hexydec\css\cssdoc();
+				if ($obj->load($css)) {
+					$obj->minify($minify);
+					$css = $obj->compile();
+				}
+			}
+
+			// create the directory if it doesn't exist
+			$dir =  \dirname($target);
+			if (!\is_dir($dir)) {
+				\mkdir($dir, 0755);
+			}
+
+			// write the file
+			if (\file_put_contents($target, $css) !== false) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static function buildJavascript(array $files, string $target, ?array $minify = null) : bool {
+		$js = '';
+
+		// minify each file
+		foreach ($files AS $item) {
+			if (($file = \file_get_contents($item)) !== false) {
+				$js .= ($js ? "\n\n" : '').$file;
+			}
+		}
+
+		// write the file
+		if ($js) {
+
+			// minify
+			if ($minify !== null) {
+				$obj = new \hexydec\jslite\jslite();
+				if ($obj->load($js)) {
+					$obj->minify($minify);
+					$js = $obj->compile();
+				}
+			}
+
+			// create directory if it doesn't exist
+			$dir =  \dirname($target);
+			if (!\is_dir($dir)) {
+				\mkdir($dir, 0755);
+			}
+
+			// write the file
+			if (\file_put_contents($target, $js) !== false) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

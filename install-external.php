@@ -19,12 +19,13 @@ class installExternal extends packages {
 		if (($tmp = \tempnam(\sys_get_temp_dir(), 'hxd')) === false) {
 			\wp_die('Could not create temporary file');
 		} else {
+			$dir = self::INSTALLDIR;
 
 			// delete all directories
-			if (\is_dir(self::INSTALLDIR)) {
+			if (\is_dir($dir)) {
 				$this->cleanupDirectories(self::INSTALLDIR);
 			} else {
-				\mkdir(self::INSTALLDIR, 0755);
+				\mkdir($dir, 0755);
 			}
 
 			// install external assets
@@ -40,8 +41,25 @@ class installExternal extends packages {
 					\wp_die('Plugin activation failed: Could not open file "'.$item['file'].'"');
 
 				// extract the files
-				} elseif (!$zip->extractTo(self::INSTALLDIR)) {
-					\wp_die('Plugin activation failed: Could not extract file "'.$item['file'].'"');
+				} else {
+					$files = [];
+					$len = \mb_strlen($item['extract']);
+					for ($i = 0; $i < $zip->numFiles; $i++) {
+						$file = $zip->getNameIndex($i);
+
+						// only extract files from the specified folder
+						if (($pos = \mb_strpos($file, $item['extract'])) === 0 && \mb_substr($file, -1) !== '/') {
+							$source = 'zip://'.$tmp."#".$file;
+							$target = $dir.$key.\mb_substr($file, $len - 1);
+							$targetdir = \dirname($target);
+							if (!\is_dir($targetdir)) {
+								\mkdir($targetdir, 0755);
+							}
+							if (!\copy($source, $target)) {
+								\wp_die('Plugin activation failed: Could not extract file "'.$file.'"');
+							}
+						}
+					}
 				}
 			}
 

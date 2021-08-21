@@ -575,39 +575,13 @@ class config extends packages {
 		// callback to create the combined stylesheet on save
 		$this->options['settings']['options']['combinestyle']['onsave'] = function (array $value, array $options) use ($dir) {
 			if ($value) {
-				$css = '';
-				$obj = new \hexydec\css\cssdoc();
-
-				// minify each file
+				$files = [];
 				foreach ($value AS $item) {
-					$file = false;
-					if ($options['minifystyle'] && $obj->open($dir.$item)) {
-						$obj->minify($options['style'] ?? []);
-						$file = $obj->compile();
-					}
-
-					// get file it not created above and rewrite URL's
-					if ($file || ($file = \file_get_contents($dir.$item)) !== false) {
-						$css .= \preg_replace_callback('/url\\([\'"]?+(?!data:)([^\\)]++)[\'"]?\\)/i', function (array $match) use ($item, $dir) {
-							\chdir(\dirname($dir.$item));
-							$path = \realpath($match[1]);
-							return 'url('.\str_replace('\\', '/', \substr($path, \strlen($_SERVER['DOCUMENT_ROOT']))).')';
-						}, $file);
-					}
+					$files[] = $dir.$item;
 				}
-
-				// write the file
-				if ($css) {
-					$dir =  __DIR__.'/build/';
-					if (!\is_dir($dir)) {
-						\mkdir($dir, 0755);
-					}
-					$file = $dir.\md5(\implode(',', $value)).'.css';
-					if (\file_put_contents($file, $css)) {
-						return true;
-					} else {
-						\add_settings_error(self::SLUG, self::SLUG, 'The combined CSS file could not be generated');
-					}
+				$target =  __DIR__.'/build/'.\md5(\implode(',', $value)).'.css';
+				if (!assets::buildCss($files, $target, $options['minifystyle'] ? ($options['style'] ?? []) : null)) {
+					\add_settings_error(self::SLUG, self::SLUG, 'The combined CSS file could not be generated');
 				}
 			}
 			return false;
@@ -630,32 +604,49 @@ class config extends packages {
 		// callback for saving the combined script
 		$this->options['settings']['options']['combinescript']['onsave'] = function (array $value, array $options) use ($dir) {
 			if ($value) {
-				$js = '';
-				$obj = new \hexydec\jslite\jslite();
-
-				// minify each file
+				$files = [];
 				foreach ($value AS $item) {
-					if ($obj->open($dir.$item)) {
-						if ($options['minifyscript']) {
-							$obj->minify($options['script'] ?? []);
-						}
-						$js .= ($js && $js[-1] !== '}' ? ';' : '').$obj->compile();
-					}
+					$files[] = $dir.$item;
 				}
-
-				// write the file
-				if ($js) {
-					$dir =  __DIR__.'/build/';
-					if (!\is_dir($dir)) {
-						\mkdir($dir, 0755);
-					}
-					$file = $dir.\md5(\implode(',', $value)).'.js';
-					if (\file_put_contents($file, $js)) {
-						return true;
-					} else {
-						\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
-					}
+				$target =  __DIR__.'/build/'.\md5(\implode(',', $value)).'.js';
+				if (!assets::buildJavascript($files, $target, $options['minifyscript'] ? ($options['script'] ?? []) : null)) {
+					\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
 				}
+				// $js = '';
+				//
+				// // minify each file
+				// foreach ($value AS $item) {
+				// 	if (($file = \file_get_contents($dir.$item)) !== false) {
+				// 		$js .= ($js ? "\n\n" : '').$file;
+				// 	}
+				// }
+				//
+				// // write the file
+				// if ($js) {
+				//
+				// 	// minify
+				// 	if ($options['minifyscript']) {
+				// 		$obj = new \hexydec\jslite\jslite();
+				// 		if ($obj->load($js)) {
+				// 			// $obj->minify($options['script'] ?? []);
+				// 			$js = $obj->compile();
+				// 		}
+				// 	}
+				//
+				// 	// create directory if it doesn't exist
+				// 	$dir =  __DIR__.'/build/';
+				// 	if (!\is_dir($dir)) {
+				// 		\mkdir($dir, 0755);
+				// 	}
+				//
+				// 	// write the file
+				// 	$file = $dir.\md5(\implode(',', $value)).'.js';
+				// 	if (\file_put_contents($file, $js)) {
+				// 		return true;
+				// 	} else {
+				// 		\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
+				// 	}
+				// }
 			}
 			return false;
 		};

@@ -171,7 +171,6 @@ class app extends config {
 							foreach ($options['combinestyle'] AS $item) {
 								$len = \strlen($html);
 								$doc->remove('link[rel=stylesheet][href*="'.$item.'"]');
-								// return $len .' - '.strlen($doc->html()).' - '.$item;
 							}
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
@@ -180,12 +179,22 @@ class app extends config {
 
 						// combine style
 						if (!empty($options['combinescript'])) {
+
+							// remove scripts we are combining
 							foreach ($options['combinescript'] AS $item) {
 								$doc->remove('script[src*="'.$item.'"]');
 							}
+
+							// append the combined file to the body tag
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$doc->find("body")->append('<script src="'.\htmlspecialchars($url).'" defer></script>');
+							$body = $doc->find("body");
+							$body->append('<script src="'.\htmlspecialchars($url).'"></script>');
+
+							// move all the inline scripts underneath the combined file
+							$inline = $doc->find("script:not([src])");
+							$body->append($inline);
+							$inline->remove();
 						}
 
 						// build the minification options
