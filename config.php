@@ -15,13 +15,12 @@ class config extends packages {
 		'overview' => [
 			'tab' => 'Overview',
 			'name' => 'Website Overview',
-			'desc' => 'A scan of your website\'s security and performance',
 			'options' => []
 		],
 		'settings' => [
 			'tab' => 'Settings',
 			'name' => 'Plugin Options',
-			'desc' => 'Edit the plugin settings',
+			'html' => '<p>Edit the amin settings of the plugin.</p>',
 			'options' => [
 				'minifyhtml' => [
 					'label' => 'Minify HTML',
@@ -76,7 +75,7 @@ class config extends packages {
 		'html' => [
 			'tab' => 'HTML',
 			'name' => 'Basic Minification',
-			'desc' => 'Edit the general HTML minification settings',
+			'html' => '<p>Edit the general HTML minification settings.</p>',
 			'options' => [
 				'whitespace' => [
 					'label' => 'Whitespace',
@@ -85,9 +84,9 @@ class config extends packages {
 					'default' => true
 				],
 				'lowercase' => [
-					'label' => 'Tags/Attributes',
+					'label' => 'Lowercase',
 					'type' => 'checkbox',
-					'description' => 'Lowercase tag/attribute names',
+					'description' => 'Lowercase tag/attribute names to improve Gzip',
 					'default' => true
 				],
 				'singleton' => [
@@ -107,7 +106,7 @@ class config extends packages {
 		'attributes' => [
 			'tab' => 'HTML',
 			'name' => 'Attribute Minification',
-			'desc' => 'Edit how HTML attributes are minified. Note that syntactically these optimisations are safe, but if your CSS or Javascript depends on attributes or values being there, these options may cause styles or Javascript not to work as expected. <a href="https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md" target="_blank">Find out more here</a>.',
+			'html' => '<p>Edit how HTML attributes are minified. <em>Note that syntactically these optimisations are safe, but if your CSS or Javascript depends on attributes or values being there, these options may cause styles or Javascript not to work as expected. <a href="https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md" target="_blank">Find out more here</a>.</em></p>',
 			'options' => [
 				'quotes' => [
 					'label' => 'Attribute Quotes',
@@ -168,7 +167,7 @@ class config extends packages {
 		'urls' => [
 			'tab' => 'HTML',
 			'name' => 'URL Minification',
-			'desc' => 'Edit how URLs are minified. Note that syntactically these optimisations are safe, but if your CSS or Javascript depends on your URL\'s being a certain structure, these options may cause styles or Javascript not to work as expected. <a href="https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md" target="_blank">Find out more here</a>.',
+			'html' => '<p>Edit how URLs are minified. <em>Note that syntactically these optimisations are safe, but if your CSS or Javascript depends on your URL\'s being a certain structure, these options may cause styles or Javascript not to work as expected. <a href="https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md" target="_blank">Find out more here</a>.</em></p>',
 			'options' => [
 				'urls_scheme' => [
 					'label' => 'Scheme', // remove the scheme from URLs that have the same scheme as the current document
@@ -199,7 +198,7 @@ class config extends packages {
 		'comments' => [
 			'tab' => 'HTML',
 			'name' => 'Comment Minification',
-			'desc' => 'Edit how comments are minified',
+			'html' => '<p>Edit how HTML comments are minified.</p>',
 			'options' => [
 				'comments_remove' => [
 					'label' => 'Comments',
@@ -218,7 +217,7 @@ class config extends packages {
 		'style' => [
 			'tab' => 'CSS',
 			'name' => 'CSS Minification',
-			'desc' => 'Manage how inline CSS and combined CSS files are minified',
+			'html' => '<p>Manage how inline CSS and combined CSS files are minified.</p>',
 			'options' => [
 				'style_selectors' => [
 					'label' => 'Selectors',
@@ -321,7 +320,7 @@ class config extends packages {
 		'script' => [
 			'tab' => 'Javascript',
 			'name' => 'Javascript Minification',
-			'desc' => 'Manage how inline Javascript and combined Javascript\'s are minified',
+			'html' => '<p>Manage how inline Javascript and combined Javascript\'s are minified.</p>',
 			'options' => [
 				'script_whitespace' => [
 					'label' => 'Whitespace', // strip whitespace around javascript
@@ -365,7 +364,7 @@ class config extends packages {
 		'cache' => [
 			'tab' => 'Caching',
 			'name' => 'Caching',
-			'desc' => 'Control how proxies cache your site, and how browsers cache it',
+			'html' => '<p>Control how proxies cache your site, and how browsers cache it.</p>',
 			'options' => [
 				'maxage' => [
 					'label' => 'Browser Cache',
@@ -390,7 +389,7 @@ class config extends packages {
 		'security' => [
 			'tab' => 'Security',
 			'name' => 'Security',
-			'desc' => 'Implement some security features on your website',
+			'html' => '<p>Implement browser security features on your website.</p>',
 			'options' => [
 				'typeoptions' => [
 					'label' => 'Set X-Content-Type-Options',
@@ -433,7 +432,7 @@ class config extends packages {
 		'csp' => [
 			'tab' => 'Security',
 			'name' => 'Content Security Policy',
-			'desc' => 'Controls what domains your site is allowed to connect and load assets from. Use "\'self\'" for the current domain, "\'unsafe-inline\'" to allow inline scripts or style, and "data:" to allow data URI\'s. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy" target="_blank">See MDN for more options</a>.',
+			'html' => '<p>Controls what domains your site is allowed to connect and load assets from. Use "\'self\'" for the current domain, "\'unsafe-inline\'" to allow inline scripts or style, and "data:" to allow data URI\'s. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy" target="_blank">See MDN for more options</a>.</p>',
 			'options' => [
 				'csp_setting' => [
 					'label' => 'Content-Security-Policy', // Strict-Transport-Security
@@ -505,7 +504,7 @@ class config extends packages {
 		'preload' => [
 			'tab' => 'Preload',
 			'name' => 'HTTP/2.0 Preload',
-			'desc' => 'Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Preload, and it must be served over HTTPS. It will improve your load time without HTTP/2.0 support, but you will get more performance with support. Note that this will set a cookie called "torque-preload".',
+			'html' => '<p>Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Preload, and it must be served over HTTPS. It will improve your load time without HTTP/2.0 support, but you will get more performance with support. <em>Note that this will set a cookie called "torque-preload".</em></p>',
 			'options' => [
 				'preload' => [
 					'label' => 'Preload Assets',
@@ -612,41 +611,6 @@ class config extends packages {
 				if (!assets::buildJavascript($files, $target, $options['minifyscript'] ? ($options['script'] ?? []) : null)) {
 					\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
 				}
-				// $js = '';
-				//
-				// // minify each file
-				// foreach ($value AS $item) {
-				// 	if (($file = \file_get_contents($dir.$item)) !== false) {
-				// 		$js .= ($js ? "\n\n" : '').$file;
-				// 	}
-				// }
-				//
-				// // write the file
-				// if ($js) {
-				//
-				// 	// minify
-				// 	if ($options['minifyscript']) {
-				// 		$obj = new \hexydec\jslite\jslite();
-				// 		if ($obj->load($js)) {
-				// 			// $obj->minify($options['script'] ?? []);
-				// 			$js = $obj->compile();
-				// 		}
-				// 	}
-				//
-				// 	// create directory if it doesn't exist
-				// 	$dir =  __DIR__.'/build/';
-				// 	if (!\is_dir($dir)) {
-				// 		\mkdir($dir, 0755);
-				// 	}
-				//
-				// 	// write the file
-				// 	$file = $dir.\md5(\implode(',', $value)).'.js';
-				// 	if (\file_put_contents($file, $js)) {
-				// 		return true;
-				// 	} else {
-				// 		\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
-				// 	}
-				// }
 			}
 			return false;
 		};

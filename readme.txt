@@ -4,7 +4,7 @@ Tags: minify,minification,performance,security,optimization
 Requires at least: 5.7
 Tested up to: 5.8
 Requires PHP: 7.3
-Stable tag: trunk
+Stable tag: 0.5.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -13,7 +13,7 @@ A Wordpress plugin to optimise the transport of your website to the client. Redu
 == Description ==
 Take advantage of best in class minification to squeeze every byte out of your HTML, CSS, and Javascript, combine this with the control over cache headers, lazy loading, and more, and your website will not only be noticeably faster, your server will be under less load, enabling you to serve more clients with your existing metal.
 
-The plugin also includes a suite of security features to help you secure your website, including full control over Content-Security-Policy, which enables you to control which domains can embed assets on your websites, and what domains you can connect to. This prevents malicious scripts from being able to run and more.
+The plugin also includes a suite of security features to help you secure your website, including full control over Content-Security-Policy, which enables you to control which domains can embed assets on your website, and what domains you can connect to. This prevents malicious scripts from being able to run and more.
 
 See the [Torque Github homepage](https://github.com/hexydec/torque) for more information.
 

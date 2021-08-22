@@ -515,7 +515,8 @@ class overview extends assets {
 		$css = \str_replace('\\', '/', __DIR__).'/stylesheets/overview.css';
 		\wp_enqueue_style('torque-overview', \get_home_url().\mb_substr($css, \mb_strlen(\get_home_path()) - 1), [], \filemtime($css));
 
-		$html = '<section class="torque-overview">';
+		$html = '<p>A scan of your website\'s security and performance.</p>
+			<section class="torque-overview">';
 		foreach ($config AS $g => $group) {
 			$html .= '<h2>'.\htmlspecialchars($group['title']).'</h2>
 				<div class="torque-overview__list">';

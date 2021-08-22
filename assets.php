@@ -219,6 +219,14 @@ class assets {
 		return $assets ? $assets : false;
 	}
 
+	/**
+	 * Builds the requested CSS files into a single compressed file
+	 *
+	 * @param array $files An array of absolute file address to combine
+	 * @param string $target The absolute file address of the target document
+	 * @param array $minify Minification option array or null to not minify at all
+	 * @return bool Whether the output file was created
+	 */
 	public static function buildCss(array $files, string $target, ?array $minify = null) : bool {
 
 		// get the CSS documents and rewrite the URL's
@@ -259,6 +267,14 @@ class assets {
 		return false;
 	}
 
+	/**
+	 * Builds the requested Javascript files into a single compressed file
+	 *
+	 * @param array $files An array of absolute file address to combine
+	 * @param string $target The absolute file address of the target document
+	 * @param array $minify Minification option array or null to not minify at all
+	 * @return bool Whether the output file was created
+	 */
 	public static function buildJavascript(array $files, string $target, ?array $minify = null) : bool {
 		$js = '';
 
