@@ -174,7 +174,7 @@ class app extends config {
 							}
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$doc->find("head")->append('<link rel="stylesheet" href="'.\htmlspecialchars($url).'" />');
+							$doc->find("head")->append('<link rel="stylesheet" href="'.\esc_html($url).'" />');
 						}
 
 						// combine style
@@ -189,7 +189,7 @@ class app extends config {
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
 							$body = $doc->find("body");
-							$body->append('<script src="'.\htmlspecialchars($url).'"></script>');
+							$body->append('<script src="'.\esc_html($url).'"></script>');
 
 							// move all the inline scripts underneath the combined file
 							$inline = $doc->find("script:not([src])");

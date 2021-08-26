@@ -18,7 +18,7 @@ class admin extends config {
 		// get the current tab
 		$tabs = $this->getTabs();
 		$tab = $_POST['tab'] ?? ($_GET['tab'] ?? null);
-		return isset($tab) && in_array($tab, $tabs) ? $tab : $tabs[0];
+		return isset($tab) && \in_array($tab, $tabs) ? $tab : $tabs[0];
 	}
 
 	/**
@@ -106,16 +106,16 @@ class admin extends config {
 			$folder = \str_replace('\\', '/', \mb_substr(__DIR__, \mb_strlen($_SERVER['DOCUMENT_ROOT']))).'/';
 
 			// render headers and tabs ?>
-			<h1 style="display:flex;align-items:center;"><img src="<?php echo \htmlspecialchars($folder); ?>graphics/torque-icon.svg" alt="Torque" style="width:40px;margin-right:10px" />Torque Configuration</h1>
-			<form action="options.php" method="post" accept-charset="<?php echo \htmlspecialchars(\mb_internal_encoding()); ?>">
-				<input type="hidden" name="tab" value="<?php echo \htmlspecialchars($tab); ?>" />
+			<h1 style="display:flex;align-items:center;"><img src="<?php echo \esc_html($folder); ?>graphics/torque-icon.svg" alt="Torque" style="width:40px;margin-right:10px" />Torque Configuration</h1>
+			<form action="options.php" method="post" accept-charset="<?php echo \esc_html(\mb_internal_encoding()); ?>">
+				<input type="hidden" name="tab" value="<?php echo \esc_html($tab); ?>" />
 				<nav class="nav-tab-wrapper">
 					<?php
 					$tabs = [];
 					foreach ($this->options AS $key => $item) {
 						if (!\in_array($item['tab'], $tabs)) {
 							$tabs[] = $item['tab'];
-							?><a href="?page=<?php echo \htmlspecialchars(self::SLUG); ?>&amp;tab=<?php echo $key; ?>" class="nav-tab<?php echo $key === $tab ? ' nav-tab-active' : '' ?>" title="<?php echo \htmlspecialchars($item['desc']); ?>"><?php echo \htmlspecialchars($item['tab']); ?></a><?php
+							?><a href="?page=<?php echo \esc_html(self::SLUG); ?>&amp;tab=<?php echo $key; ?>" class="nav-tab<?php echo $key === $tab ? ' nav-tab-active' : '' ?>" title="<?php echo \esc_html($item['desc']); ?>"><?php echo \esc_html($item['tab']); ?></a><?php
 						}
 					} ?>
 				</nav>
@@ -135,19 +135,27 @@ class admin extends config {
 
 		// render field controls
 		$current = $this->options[$tab]['tab'];
+		$allowed = \array_merge(\wp_kses_allowed_html('post'), [
+			'input' => [
+				'type' => 'checkbox',
+				'id' => true,
+				'value' => true,
+				'class' => true
+			]
+		]);
 		foreach ($this->options AS $g => $group) {
 			if ($group['tab'] === $current) {
 
 				// add section
-				\add_settings_section(self::SLUG.'_options_'.$g, $group['name'], function () use ($g, $group) {
+				\add_settings_section(self::SLUG.'_options_'.$g, $group['name'], function () use ($g, $group, $allowed) {
 
 					// echo precompiled HTML or generate on the fly - not generated from user input
-					echo $group['html'] instanceof \Closure ? $group['html']() : $group['html'];
+					echo \wp_kses(($group['html'] instanceof \Closure ? $group['html']() : $group['html']), $allowed);
 				}, self::SLUG);
 
 				// add options
 				foreach ($group['options'] AS $key => $item) {
-					\add_settings_field($key, \htmlspecialchars($item['label']), function () use ($g, $key, $item, $options) {
+					\add_settings_field($key, \esc_html($item['label']), function () use ($g, $key, $item, $options, $allowed) {
 
 						// get the current setting
 						$parts = \explode('_', $key, 2);
@@ -165,17 +173,17 @@ class admin extends config {
 							case 'checkbox':
 							case 'number':
 								$checkbox = $item['type'] === 'checkbox'; ?>
-								<input type="<?php echo $item['type']; ?>" id="<?php echo \htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?php echo \htmlspecialchars(self::SLUG.'['.$key.']'); ?>" value="<?php echo $checkbox ? '1' : \htmlspecialchars($value); ?>"<?php echo $checkbox && $value ? ' checked="checked"' : ''; ?> />
+								<input type="<?php echo $item['type']; ?>" id="<?php echo \esc_html(self::SLUG.'-'.$key); ?>" name="<?php echo \esc_html(self::SLUG.'['.$key.']'); ?>" value="<?php echo $checkbox ? '1' : \esc_html($value); ?>"<?php echo $checkbox && $value ? ' checked="checked"' : ''; ?> />
 								<?php
 								if ($checkbox && !empty($item['description'])) { ?>
-									<label for="<?php echo \htmlspecialchars(self::SLUG.'-'.$key); ?>"><?php echo \htmlspecialchars($item['description']); ?></label>
+									<label for="<?php echo \esc_html(self::SLUG.'-'.$key); ?>"><?php echo \esc_html($item['description']); ?></label>
 									<?php
 									$item['description'] = null;
 								}
 								break;
 							case 'text':
 								?>
-								<textarea id="<?php echo \htmlspecialchars(self::SLUG.'-'.$key); ?>" name="<?php echo \htmlspecialchars(self::SLUG.'['.$key.']'); ?>" rows="5" cols="30"><?php echo \htmlspecialchars($value); ?></textarea>
+								<textarea id="<?php echo \esc_html(self::SLUG.'-'.$key); ?>" name="<?php echo \esc_html(self::SLUG.'['.$key.']'); ?>" rows="5" cols="30"><?php echo \esc_html($value); ?></textarea>
 								<?php
 								break;
 							case 'multiselect':
@@ -187,16 +195,16 @@ class admin extends config {
 									$item['values'] = $this->getDatasource($g, $key);
 								}
 								$group = null; ?>
-								<select name="<?php echo \htmlspecialchars(self::SLUG.'['.$key.']'.($item['type'] === 'multiselect' ? '[]' : '')); ?>"<?php echo $item['type'] === 'multiselect' ? ' multiple="multiple" style="height:200px;width:95%;max-width:600px"' : ''; ?>>
+								<select name="<?php echo \esc_html(self::SLUG.'['.$key.']'.($item['type'] === 'multiselect' ? '[]' : '')); ?>"<?php echo $item['type'] === 'multiselect' ? ' multiple="multiple" style="height:200px;width:95%;max-width:600px"' : ''; ?>>
 									<?php foreach ($item['values'] AS $option) {
 										if (($option['group'] ?? null) !== $group) {
 											if ($group) {
 												echo '</optgroup>';
 											}
 											$group = $option['group']; ?>
-											<optgroup label="<?php echo \htmlspecialchars($option['group']); ?>">
+											<optgroup label="<?php echo \esc_html($option['group']); ?>">
 										<?php } ?>
-										<option value="<?php echo \htmlspecialchars($option['id']); ?>"<?php echo \in_array($option['id'], $value) ? ' selected="selected"' : ''; ?>><?php echo \htmlspecialchars($option['name']); ?></option>
+										<option value="<?php echo \esc_html($option['id']); ?>"<?php echo \in_array($option['id'], $value) ? ' selected="selected"' : ''; ?>><?php echo \esc_html($option['name']); ?></option>
 									<?php } ?>
 									<?php echo $group ? '</optgroup>' : ''; ?>
 								</select>
@@ -206,7 +214,7 @@ class admin extends config {
 
 						// description
 						if (!empty($item['description'])) { ?>
-							<p><?php echo empty($item['descriptionhtml']) ? \htmlspecialchars($item['description']) : $item['description']; ?></p>
+							<p><?php echo empty($item['descriptionhtml']) ? \esc_html($item['description']) : \wp_kses($item['description'], $allowed); ?></p>
 						<?php }
 					}, self::SLUG, self::SLUG.'_options_'.$g);
 				}

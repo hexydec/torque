@@ -391,7 +391,7 @@ class overview extends assets {
 							if (!empty($data['link']) && ($assets = $this->getLinkAssets($data['link'], 'preload')) !== null) {
 								$html .= '<p>The following assets are being preloaded:</p><ul>';
 								foreach ($assets AS $item) {
-									$html .= '<li>'.htmlspecialchars($item['url']).'</li>';
+									$html .= '<li>'.esc_html($item['url']).'</li>';
 								}
 								$html .= '</ul>';
 							}
@@ -518,7 +518,7 @@ class overview extends assets {
 		$html = '<p>A scan of your website\'s security and performance.</p>
 			<section class="torque-overview">';
 		foreach ($config AS $g => $group) {
-			$html .= '<h2>'.\htmlspecialchars($group['title']).'</h2>
+			$html .= '<h2>'.\esc_html($group['title']).'</h2>
 				<div class="torque-overview__list">';
 			foreach ($group['params'] AS $p => $item) {
 				if (isset($item['header'])) {
@@ -532,10 +532,10 @@ class overview extends assets {
 				if (($item['value'] ?? null) !== null || $badge) {
 					$html .= '<input type="checkbox" class="torque-overview__switch" id="torque-'.$g.'-'.$p.'" />';
 					$html .= '<label class="torque-overview__heading" for="torque-'.$g.'-'.$p.'">
-						<span class="torque-overview__heading-title">'.\htmlspecialchars($item['title']).'</span>';
+						<span class="torque-overview__heading-title">'.\esc_html($item['title']).'</span>';
 					if ($badge) {
 						$html .= '<span class="torque-overview__heading-status'.($enabled === null ? '' : ' torque-overview__heading-status--'.($enabled ? 'enabled' : 'disabled')).'">
-							'.\htmlspecialchars($badge).'
+							'.\esc_html($badge).'
 						</span>';
 					}
 					if (($item['html'] ?? null) !== null) {
