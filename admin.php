@@ -17,8 +17,9 @@ class admin extends config {
 
 		// get the current tab
 		$tabs = $this->getTabs();
-		$tab = $_POST['tab'] ?? ($_GET['tab'] ?? null);
-		return isset($tab) && \in_array($tab, $tabs) ? $tab : $tabs[0];
+		$value = $_POST['tab'] ?? ($_GET['tab'] ?? null);
+		$tab = \in_array($value, $tabs, true) ? $value : $tabs[0];
+		return $tab;
 	}
 
 	/**
@@ -206,7 +207,9 @@ class admin extends config {
 										<?php } ?>
 										<option value="<?php echo \esc_html($option['id']); ?>"<?php echo \in_array($option['id'], $value) ? ' selected="selected"' : ''; ?>><?php echo \esc_html($option['name']); ?></option>
 									<?php } ?>
-									<?php echo $group ? '</optgroup>' : ''; ?>
+									<?php if ($group) {
+										echo '</optgroup>';
+									} ?>
 								</select>
 								<?php
 								break;
