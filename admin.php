@@ -16,9 +16,9 @@ class admin extends config {
 	protected function getCurrentTab() : string {
 
 		// get the current tab
-		$tabs = $this->getTabs();
-		$value = $_POST['tab'] ?? ($_GET['tab'] ?? null);
-		$tab = \in_array($value, $tabs, true) ? $value : $tabs[0];
+		$tabs = $this->getTabs(); // allowed tabs
+		$value = $_POST['tab'] ?? ($_GET['tab'] ?? null); // current user value - can be GET or POST
+		$tab = \in_array($value, $tabs, true) ? $value : $tabs[0]; // check tab against list or use first tab
 		return $tab;
 	}
 
