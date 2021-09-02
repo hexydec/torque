@@ -1,10 +1,10 @@
-=== Torque ===
+=== Torque - Optimise the transport of your Website ===
 Contributors: hexydec
 Tags: minify,minification,performance,security,optimization
 Requires at least: 5.7
 Tested up to: 5.8
 Requires PHP: 7.3
-Stable tag: 0.5.0
+Stable tag: 0.5.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -16,6 +16,14 @@ Take advantage of best in class minification to squeeze every byte out of your H
 The plugin also includes a suite of security features to help you secure your website, including full control over Content-Security-Policy, which enables you to control which domains can embed assets on your website, and what domains you can connect to. This prevents malicious scripts from being able to run and more.
 
 See the [Torque Github homepage](https://github.com/hexydec/torque) for more information.
+
+== Installation ==
+
+Upon installation of the plugin, most of the settings will be disabled. Only the settings in the "Caching" section will be implemented.
+
+To get the plugin up and running to a basic level, enable some settings in the "Settings" section.
+
+It is recommended that you do not use this plugin with other minification plugins.
 
 == Screenshots ==
 1. The Overview screen analyses your website and gives recommendations

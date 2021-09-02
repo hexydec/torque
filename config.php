@@ -15,12 +15,14 @@ class config extends packages {
 		'overview' => [
 			'tab' => 'Overview',
 			'name' => 'Website Overview',
+			'desc' => 'An overview of your website\'s performance and security',
 			'options' => []
 		],
 		'settings' => [
 			'tab' => 'Settings',
 			'name' => 'Plugin Options',
-			'html' => '<p>Edit the amin settings of the plugin.</p>',
+			'desc' => 'Edit the main settings of the plugin',
+			'html' => '<p>Edit the main settings of the plugin.</p>',
 			'options' => [
 				'minifyhtml' => [
 					'label' => 'Minify HTML',
@@ -75,6 +77,7 @@ class config extends packages {
 		'html' => [
 			'tab' => 'HTML',
 			'name' => 'Basic Minification',
+			'desc' => 'Edit the HTML minification options',
 			'html' => '<p>Edit the general HTML minification settings.</p>',
 			'options' => [
 				'whitespace' => [
@@ -217,6 +220,7 @@ class config extends packages {
 		'style' => [
 			'tab' => 'CSS',
 			'name' => 'CSS Minification',
+			'desc' => 'Edit the CSS minification options',
 			'html' => '<p>Manage how inline CSS and combined CSS files are minified.</p>',
 			'options' => [
 				'style_selectors' => [
@@ -320,6 +324,7 @@ class config extends packages {
 		'script' => [
 			'tab' => 'Javascript',
 			'name' => 'Javascript Minification',
+			'desc' => 'Edit the Javascript minification options',
 			'html' => '<p>Manage how inline Javascript and combined Javascript\'s are minified.</p>',
 			'options' => [
 				'script_whitespace' => [
@@ -364,6 +369,7 @@ class config extends packages {
 		'cache' => [
 			'tab' => 'Caching',
 			'name' => 'Caching',
+			'desc' => 'Edit the browser cache settings',
 			'html' => '<p>Control how proxies cache your site, and how browsers cache it.</p>',
 			'options' => [
 				'maxage' => [
@@ -389,6 +395,7 @@ class config extends packages {
 		'security' => [
 			'tab' => 'Security',
 			'name' => 'Security',
+			'desc' => 'Edit the website security settings',
 			'html' => '<p>Implement browser security features on your website.</p>',
 			'options' => [
 				'typeoptions' => [
@@ -504,6 +511,7 @@ class config extends packages {
 		'preload' => [
 			'tab' => 'Preload',
 			'name' => 'HTTP/2.0 Preload',
+			'desc' => 'Edit the HTTP/2.0 preload settings',
 			'html' => '<p>Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Preload, and it must be served over HTTPS. It will improve your load time without HTTP/2.0 support, but you will get more performance with support. <em>Note that this will set a cookie called "torque-preload".</em></p>',
 			'options' => [
 				'preload' => [
