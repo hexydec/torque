@@ -423,7 +423,7 @@ class config extends packages {
 				],
 				'hsts' => [
 					'label' => 'Force SSL', // Strict-Transport-Security
-					'description' => 'Tells the browser to only access this site with a valid SSL certificate, you must deliver your site over SSL to use this',
+					'description' => 'Tells the browser to only access this site with a valid SSL certificate, you must deliver your site over HTTPS to use this',
 					'type' => 'select',
 					'values' => [
 						['id' => 0, 'name' => 'Don\'t force SSL'],
@@ -522,7 +522,7 @@ class config extends packages {
 				],
 				'preloadstyle' => [
 					'label' => 'Preload Combined Stylesheet',
-					'description' => 'If you have selected to combine your stylesheets, select to preload it',
+					'description' => 'If you have enable the combined stylesheets, select this to preload it',
 					'type' => 'checkbox',
 					'default' => false
 				]
