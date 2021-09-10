@@ -47,21 +47,21 @@ The plugin also includes a suite of security features to help you secure your we
 
 Depending on how compressible you content is you can expect ~10 - 15% compression of your page before gzip compression, after gzip you can expect ~5 - 10%.
 
+### How long does it take to minify my page?
+
+You can tick the "Show stats in the console" option to see how long it takes to minify your page and what compression was achieved, view the output in the developer console (Press F12).
+
+Note that inline CSS and Javascript is cached in a Wordpress transient, so if you page has inline code, it should be faster after first run.
+
 ### What are the tradeoffs for minifying my HTML?
 
 You are swapping the time it takes to send the extra bytes down the wire to your clients for extra CPU time on the server.
 
 Torque uses my other project HTMLdoc to minify your code, it has been designed to use on the fly and has been optimised for speed. Even so I recommend you use some sort of cache in front of your PHP code to make sure your time-to-first-byte is optimised, then the extra CPU time doesn't matter.
 
-### How long does it take to minify my page?
-
-You can tick the "Show stats in the console" option to see how long it takes to minify your page, view the output in the developer console (Press F12).
-
-Note that inline CSS and Javascript is cached in a Wordpress transient, so if you page has inline code, it should be faster after first run.
-
 ### How can I test if my page is faster after using your plugin?
 
-The best tool to use if Lighthouse, which is built into Blink based browsers such as Chrome, Edge and others:
+The best tool to use is Lighthouse, which is built into Blink based browsers such as Chrome, Edge and others:
 
 - Press F12 to bring up the developer tools
 - Select the "Lighthouse" tab
@@ -77,9 +77,11 @@ Other minification plugins blindly find and replace patterns within your code to
 
 All three libraries have automated test suites to ensure reliability, and should outperform other PHP based minifiers in terms of compression.
 
-### How do I setup my Content-Security-Policy?
+### What is Content Security Policy?
 
-Content-Security-Policy (CSP) is a very powerful browser security feature that only enables assets to be downloaded from the specified domains. Any assets that are downloaded from domains that are not listed will be blocked.
+Content Security Policy (CSP) is a very powerful browser security feature that only enables assets to be downloaded from the specified domains. Any assets that are downloaded from domains that are not listed will be blocked.
+
+### How do I setup my Content-Security-Policy?
 
 Using the developer tools in your browser (Press F12), look at the network tab on each page, and note down the domains that are used for different assets, along with their asset type. You can then enter those domains in to the relevant CSP boxes. Be sure to run any extra features of your website that use Fetch or XHR, as these connections are also bound by CSP.
 
