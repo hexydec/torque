@@ -127,6 +127,10 @@ Preload is implemented through a "Link" header, which lists all the assets to pr
 
 == Changelog ==
 
+= Version 0.5.4 =
+
+* Fixed issues with how URL's were rewritten when combining CSS files, which caused image and font files not to appear in some cases
+
 = Version 0.5.3 =
 
 * Fixed issue in HTMLdoc where domain URLs were not minified correctly
