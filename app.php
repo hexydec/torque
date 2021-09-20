@@ -317,11 +317,12 @@ class app extends config {
 		$base = \get_home_url().'/';
 		$links = [];
 		foreach ($preload AS $item) {
-			$ext = strrchr($item, '.');
-			if (($tmp = strstr($ext, '?', true)) !== false) {
+			$ext = \strrchr($item, '.');
+			if (($tmp = \strstr($ext, '?', true)) !== false) {
 				$ext = $tmp;
 			}
-			$links[] = '<'.$base.$item.'>; rel="preload"; as="'.($as[$ext] ?? 'image').'"'.($as[$ext] === 'font' ? '; crossorigin' : '');
+			$type = $as[$ext] ?? 'image';
+			$links[] = '<'.$base.$item.'>; rel="preload"; as="'.$type.'"'.($type === 'font' ? '; crossorigin' : '');
 		}
 
 		// set header
