@@ -232,10 +232,10 @@ class assets {
 		// get the CSS documents and rewrite the URL's
 		$css = '';
 		foreach ($files AS $item) {
-			if (($file = \file_get_contents($dir.$item)) !== false) {
-				$css .= \preg_replace_callback('/url\\([\'"]?+(?!data:)([^\\)]++)[\'"]?\\)/i', function (array $match) use ($item) {
+			if (($file = \file_get_contents($item)) !== false) {
+				$css .= \preg_replace_callback('/url\\([\'"]?+([^\\)"\':]++)[\'"]?\\)/i', function (array $match) use ($item) {
 					\chdir(\dirname($item));
-					$path = \realpath($match[1]);
+					$path = \realpath(\dirname($match[1])).'/'.\basename($match[1]);
 					return 'url('.\str_replace('\\', '/', \substr($path, \strlen($_SERVER['DOCUMENT_ROOT']))).')';
 				}, $file);
 			}

@@ -536,7 +536,7 @@ class config extends packages {
 	public function __construct() {
 
 		// render the overview
-		$this->options['overview']['html'] = function () : string {
+		$this->options['overview']['html'] = function () : ?string {
 			$obj = new overview();
 			return $obj->draw();
 		};
