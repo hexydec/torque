@@ -133,6 +133,14 @@ Preload is implemented through a "Link" header, which lists all the assets to pr
 
 == Changelog ==
 
+= Version 0.5.5 =
+
+* Fixed issue with how some internal addresses were formatted for certain features
+* Updated terminology of the HTTP/2.0 Push feature
+* Changed defaults of some HTML attribute minification options to false as they may be unsafe and updated description in `config::$options`
+* Updated FAQ in readme
+
+
 = Version 0.5.4 =
 
 * Fixed issues with how URL's were rewritten when combining CSS files, which caused image and font files not to appear in some cases
