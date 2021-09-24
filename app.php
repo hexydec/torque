@@ -314,7 +314,7 @@ class app extends config {
 		];
 
 		// build links
-		$base = \get_home_url().'/';
+		$base = \parse_url(\get_home_url().'/', PHP_URL_PATH);
 		$links = [];
 		foreach ($preload AS $item) {
 			$ext = \strrchr($item, '.');

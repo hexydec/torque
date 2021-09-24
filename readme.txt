@@ -69,7 +69,7 @@ It is recommended that you do not use this plugin with other minification plugin
 
 Depending on how compressible you content is you can expect ~10 - 15% compression of your page before gzip compression, after gzip you can expect ~5 - 10%.
 
-= How long does it take to minify my page?
+= How long does it take to minify my page? =
 
 You can tick the "Show stats in the console" option to see how long it takes to minify your page and what compression was achieved, view the output in the developer console (Press F12).
 
@@ -90,6 +90,12 @@ The best tool to use is Lighthouse, which is built into Blink based browsers suc
 * Click "Generate Report"
 
 Do this before you enable the plugin, and then again after you have enabled and configured the plugin. The performance metric should be higher with the plugin. You can also look at the Network tab in the developer console and see that the total download size and number of requests is lower (With combne and minify enabled).
+
+= I enabled minification and it broke my site =
+
+Some advanced minification optimisations can cause issues with your website's layout, or break your Javascript depending on how your CSS/Javascript selectors are setup.
+
+For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=input]`, the selecctor will no longer match. See [https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md](HTMLdoc: Mitigating Side Effects of Minification) for solutions.
 
 = Why is HTMLdoc best in class? =
 

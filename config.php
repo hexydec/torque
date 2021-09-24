@@ -120,7 +120,7 @@ class config extends packages {
 				'attributes_trim' => [
 					'label' => 'Trim Attributes',
 					'type' => 'checkbox',
-					'description' => 'Trims whitespace fro the start and end of attribute values',
+					'description' => 'Trims whitespace from the start and end of attribute values',
 					'default' => true
 				],
 				'attributes_boolean' => [
@@ -132,14 +132,14 @@ class config extends packages {
 				'attributes_default' => [
 					'label' => 'Default Values',
 					'type' => 'checkbox',
-					'description' => 'Remove attributes that specify the default value',
-					'default' => true
+					'description' => 'Remove attributes that specify the default value. Only enable this if your CSS doesn\'t rely on the attributes being there',
+					'default' => false
 				],
 				'attributes_empty' => [
 					'label' => 'Empty Attributes',
 					'type' => 'checkbox',
-					'description' => 'Remove empty attributes where possible',
-					'default' => true
+					'description' => 'Remove empty attributes where possible. Only enable this if your CSS doesn\'t rely on the attributes being there',
+					'default' => false
 				],
 				'attributes_option' => [
 					'label' => '<option> Tag',
@@ -509,20 +509,20 @@ class config extends packages {
 			]
 		],
 		'preload' => [
-			'tab' => 'Preload',
-			'name' => 'HTTP/2.0 Preload',
-			'desc' => 'Edit the HTTP/2.0 preload settings',
-			'html' => '<p>Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Preload, and it must be served over HTTPS. It will improve your load time without HTTP/2.0 support, but you will get more performance with support. <em>Note that this will set a cookie called "torque-preload".</em></p>',
+			'tab' => 'Push',
+			'name' => 'HTTP/2.0 Push',
+			'desc' => 'Edit the HTTP/2.0 Push settings',
+			'html' => '<p>Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Push, and it must be served over HTTPS. It will improve your load time without HTTP/2.0 support, but you will get more performance with support. <em>Note that this will set a cookie called "torque-preload".</em></p>',
 			'options' => [
 				'preload' => [
-					'label' => 'Preload Assets',
+					'label' => 'Push Assets',
 					'description' => 'Select which assets to preload, make sure to pick assets that appear on EVERY page',
 					'type' => 'multiselect',
 					'default' => []
 				],
 				'preloadstyle' => [
-					'label' => 'Preload Combined Stylesheet',
-					'description' => 'If you have enable the combined stylesheets, select this to preload it',
+					'label' => 'Push Combined Stylesheet',
+					'description' => 'If you have enable the combined stylesheets, select this to push it',
 					'type' => 'checkbox',
 					'default' => false
 				]

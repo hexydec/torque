@@ -198,11 +198,11 @@ class assets {
 
 				// work out the path relative to the webroot
 				\chdir($_SERVER['DOCUMENT_ROOT'].\parse_url(\dirname($url), PHP_URL_PATH));
-				$root = \rtrim(\get_home_path(), '/');
+				$root = \get_home_path();
 				$len = \strlen($root);
 				foreach ($match AS $item) {
 					if (\strpos($item[1], '/') === 0) {
-						$path = $item[1];
+						$path = \rtrim($item[1], '/');
 					} elseif (($path = \realpath($item[1])) !== false) {
 						$path = \str_replace('\\', '/', \substr($path, $len));
 					}
