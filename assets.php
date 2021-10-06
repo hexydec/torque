@@ -91,7 +91,7 @@ class assets {
 				// define what we are going to extract
 				$extract = [
 					'Stylesheets' => [
-						'selector' => 'link[rel=stylesheet]',
+						'selector' => 'link[rel=stylesheet][href!=""]',
 						'attr' => 'href'
 					],
 					'Scripts' => [
@@ -177,8 +177,9 @@ class assets {
 	 * @return array|bool An array of assets, each an array with 'id', 'group', and 'name', or false if the stylesheet could not be retrieved
 	 */
 	protected static function getStylesheetAssets(string $url) {
+		$file = WP_CONTENT_DIR.mb_substr($url, \mb_strlen(\content_url()));
 		$assets = [];
-		if (($css = \file_get_contents($url)) !== false) {
+		if (\file_exists($file) && ($css = \file_get_contents($file)) !== false) {
 			$types = [
 				'svg' => 'Images',
 				'gif' => 'Images',
@@ -197,14 +198,14 @@ class assets {
 			if (\preg_match_all($re, $css, $match, PREG_SET_ORDER)) {
 
 				// work out the path relative to the webroot
-				\chdir($_SERVER['DOCUMENT_ROOT'].\parse_url(\dirname($url), PHP_URL_PATH));
+				\chdir(\dirname($file));
 				$root = \get_home_path();
-				$len = \strlen($root);
+				$len = \mb_strlen($root);
 				foreach ($match AS $item) {
-					if (\strpos($item[1], '/') === 0) {
+					if (\mb_strpos($item[1], '/') === 0) {
 						$path = \rtrim($item[1], '/');
 					} elseif (($path = \realpath($item[1])) !== false) {
-						$path = \str_replace('\\', '/', \substr($path, $len));
+						$path = \str_replace('\\', '/', \mb_substr($path, $len));
 					}
 					if ($path !== false) {
 						$assets[] = [
@@ -298,7 +299,7 @@ class assets {
 			}
 
 			// create directory if it doesn't exist
-			$dir =  \dirname($target);
+			$dir = \dirname($target);
 			if (!\is_dir($dir)) {
 				\mkdir($dir, 0755);
 			}

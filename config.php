@@ -51,7 +51,7 @@ class config extends packages {
 				'combinescript' => [
 					'label' => 'Combine Javascript',
 					'type' => 'multiselect',
-					'description' => 'Select which Javascript files to combine and minify',
+					'description' => 'Select which Javascript files to combine and minify. Note that depending on the load order requirements of your inline and included scripts, this can break your Javascript. Check the console for errors after implementing.',
 					'default' => []
 				],
 				'lazyload' => [

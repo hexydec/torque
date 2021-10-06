@@ -174,27 +174,60 @@ class app extends config {
 							}
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$doc->find("head")->append('<link rel="stylesheet" href="'.\esc_html($url).'" />');
+							$doc->find('head')->append('<link rel="stylesheet" href="'.\esc_html($url).'" />');
 						}
 
 						// combine style
 						if (!empty($options['combinescript'])) {
+							global $wp_scripts;
+							$js = $wp_scripts->registered;
 
 							// remove scripts we are combining
+							$before = [];
+							$after = [];
 							foreach ($options['combinescript'] AS $item) {
-								$doc->remove('script[src*="'.$item.'"]');
+								$script = $doc->find('script[src*="'.$item.'"]');
+								if (($id = $script->attr("id")) !== null) {
+									$extra = \substr($id, 0, -3);
+									if (!empty($js[$extra]->extra['before']) || !empty($js[$extra]->extra['data'])) {
+										$before[] = $id.'-extra';
+									} elseif (!empty($js[$extra]->extra['after'])) {
+										$after[] = $id.'-extra';
+									}
+								}
+								$script->remove();
+							}
+							$body = $doc->find("body");
+
+							// move the before inline scripts to the bottom
+							if ($before) {
+								$inline = $doc->find('script[id='.\implode('],script[id=', $before).']');
+								$body->append($inline);
+								$inline->remove();
 							}
 
 							// append the combined file to the body tag
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$body = $doc->find("body");
 							$body->append('<script src="'.\esc_html($url).'"></script>');
 
+							// move the after inline scripts to the bottom
+							if ($after) {
+								$inline = $doc->find('script[id='.\implode('],script[id=', $after).']');
+								$body->append($inline);
+								$inline->remove();
+							}
+
 							// move all the inline scripts underneath the combined file
-							$inline = $doc->find("script:not([src])");
-							$body->append($inline);
-							$inline->remove();
+							// $ids = [];
+							// $inline = $doc->find('script:not([src])');
+							// foreach ($inline AS $item) {
+							// 	$ids[] = [$item->attr('id'), $item->html()];
+							// 	if (!\in_array($item->attr('id'), $before)) {
+							// 		$body->append($item->html());
+							// 		$item->parent->remove($item);
+							// 	}
+							// }
 						}
 
 						// build the minification options
@@ -321,7 +354,7 @@ class app extends config {
 			if (($tmp = \strstr($ext, '?', true)) !== false) {
 				$ext = $tmp;
 			}
-			$type = $as[$ext] ?? 'image';
+			$type = isset($as[$ext]) ? $as[$ext] : 'image';
 			$links[] = '<'.$base.$item.'>; rel="preload"; as="'.$type.'"'.($type === 'font' ? '; crossorigin' : '');
 		}
 
