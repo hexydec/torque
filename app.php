@@ -24,7 +24,7 @@ class app extends config {
 			$cache = empty($minify['cache']) ? null : self::SLUG.'-style-'.md5(self::VERSION.$json.$code);
 
 			// not caching or there wasn't a cache
-			if (!$cache || ($min = get_transient($cache)) === false) {
+			if (!$cache || ($min = \get_transient($cache)) === false) {
 
 				// get the minifier object
 				switch ($tag) {
@@ -45,7 +45,7 @@ class app extends config {
 
 					// cache the output
 					if ($cache) {
-						set_transient($cache, $min, 604800); // 7 days
+						\set_transient($cache, $min, 604800); // 7 days
 					}
 				} else {
 					return false;
@@ -185,6 +185,7 @@ class app extends config {
 							// remove scripts we are combining
 							$before = [];
 							$after = [];
+							$anchor = null;
 							foreach ($options['combinescript'] AS $item) {
 								$script = $doc->find('script[src*="'.$item.'"]');
 								if (($id = $script->attr("id")) !== null) {
@@ -195,28 +196,37 @@ class app extends config {
 										$after[] = $id.'-extra';
 									}
 								}
-								$script->remove();
+								if ($anchor) {
+									$script->remove();
+								} else {
+									$anchor = $script;
+								}
 							}
-							$body = $doc->find("body");
+							$scripts = '';
+							// $body = $doc->find("body");
 
 							// move the before inline scripts to the bottom
 							if ($before) {
 								$inline = $doc->find('script[id='.\implode('],script[id=', $before).']');
-								$body->append($inline);
+								$scripts .= $inline->html();
 								$inline->remove();
 							}
 
 							// append the combined file to the body tag
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$body->append('<script src="'.\esc_html($url).'"></script>');
+							$scripts .= '<script src="'.\esc_html($url).'"></script>';
 
 							// move the after inline scripts to the bottom
 							if ($after) {
 								$inline = $doc->find('script[id='.\implode('],script[id=', $after).']');
-								$body->append($inline);
+								$scripts .= $inline->html();
 								$inline->remove();
 							}
+
+							// append them to the anchor point
+							$anchor->after($scripts);
+							$anchor->remove();
 
 							// move all the inline scripts underneath the combined file
 							// $ids = [];
