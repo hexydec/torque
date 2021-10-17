@@ -203,7 +203,6 @@ class app extends config {
 								}
 							}
 							$scripts = '';
-							// $body = $doc->find("body");
 
 							// move the before inline scripts to the bottom
 							if ($before) {
@@ -227,17 +226,6 @@ class app extends config {
 							// append them to the anchor point
 							$anchor->after($scripts);
 							$anchor->remove();
-
-							// move all the inline scripts underneath the combined file
-							// $ids = [];
-							// $inline = $doc->find('script:not([src])');
-							// foreach ($inline AS $item) {
-							// 	$ids[] = [$item->attr('id'), $item->html()];
-							// 	if (!\in_array($item->attr('id'), $before)) {
-							// 		$body->append($item->html());
-							// 		$item->parent->remove($item);
-							// 	}
-							// }
 						}
 
 						// build the minification options

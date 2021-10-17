@@ -133,6 +133,11 @@ Preload is implemented through a "Link" header, which lists all the assets to pr
 
 == Changelog ==
 
+= Version 0.5.6 =
+
+* Reworked how the combined Javascript file is included to make sure the original order is kept, and inline code is loaded either before or after the combined file as defined by the script include
+* Fixed issues when addressing stylesheet assets which caused some not to be listed
+
 = Version 0.5.5 =
 
 * Fixed issue with how some internal addresses were formatted for certain features
