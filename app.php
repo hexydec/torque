@@ -21,7 +21,7 @@ class app extends config {
 		$minify = function (string $code, array $minify, string $tag) use ($json) {
 
 			// transient key
-			$cache = empty($minify['cache']) ? null : self::SLUG.'-style-'.md5(self::VERSION.$json.$code);
+			$cache = empty($minify['cache']) ? null : self::SLUG.'-style-'.\md5(self::VERSION.$json.$code);
 
 			// not caching or there wasn't a cache
 			if (!$cache || ($min = \get_transient($cache)) === false) {

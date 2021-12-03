@@ -38,6 +38,9 @@ The plugin also includes a suite of security features to help you secure your we
 	- Control how the site can be embedded
 	- Enable HSTS to force browsers to only connect over HTTPS
 	- Specify Content-Security-Policy to control what domains can connect and embed content in your site
+- HTTP/2.0 Push
+	- Select which assets to push with first load
+	- Push combined stylesheets
 - Administration panel to control all features, including all minification optimisations
 - Print minification stats in the console
 
