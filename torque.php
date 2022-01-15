@@ -48,3 +48,15 @@ require(__DIR__.'/autoload.php');
 
 // uninstall
 \register_uninstall_hook(__FILE__, '\\hexydec\\torque\\install::uninstall');
+
+// rebuild files when a plugin is updated
+\add_action('upgrader_process_complete', function () {
+	\hexydec\torque\assets::rebuildAssets();
+});
+
+// add rebuild command
+if (\class_exists('WP_CLI')) {
+	\WP_CLI::add_command('torque rebuild', '\\hexydec\\torque\\packages::rebuildAssets', [
+		'shortdesc' => 'Rebuild the configured combined CSS and Javascript files'
+	]);
+}

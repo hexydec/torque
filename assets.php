@@ -233,7 +233,7 @@ class assets {
 		// get the CSS documents and rewrite the URL's
 		$css = '';
 		foreach ($files AS $item) {
-			if (($file = \file_get_contents($item)) !== false) {
+			if (\file_exists($item) && ($file = \file_get_contents($item)) !== false) {
 				$css .= \preg_replace_callback('/url\\([\'"]?+([^\\)"\':]++)[\'"]?\\)/i', function (array $match) use ($item) {
 					\chdir(\dirname($item));
 					$path = \realpath(\dirname($match[1])).'/'.\basename($match[1]);
@@ -281,7 +281,7 @@ class assets {
 
 		// minify each file
 		foreach ($files AS $item) {
-			if (($file = \file_get_contents($item)) !== false) {
+			if (\file_exists($item) && ($file = \file_get_contents($item)) !== false) {
 				$js .= ($js ? "\n\n" : '').$file;
 			}
 		}
@@ -308,6 +308,44 @@ class assets {
 			if (\file_put_contents($target, $js) !== false) {
 				return true;
 			}
+		}
+		return false;
+	}
+
+	/**
+	 * Rebuilds the configured combined assets
+	 *
+	 * @return bool Whether the assets were regenerated
+	 */
+	public static function rebuildAssets() : bool {
+		if (($options = \get_option(packages::SLUG)) !== false) {
+			$success = true;
+			$dir = \dirname(\dirname(\dirname(__DIR__))).'/'; // can't use get_home_path() here
+
+			// rebuild CSS
+			if (!empty($options['combinestyle']) && \is_array($options['combinestyle'])) {
+				$files = [];
+				foreach ($options['combinestyle'] AS $item) {
+					$files[] = $dir.$item;
+				}
+				$target = __DIR__.'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
+				if (!self::buildCss($files, $target, $options['minifystyle'] ? ($options['style'] ?? []) : null)) {
+					$success = false;
+				}
+			}
+
+			// rebuild javascript
+			if (!empty($options['combinescript']) && \is_array($options['combinescript'])) {
+				$files = [];
+				foreach ($options['combinescript'] AS $item) {
+					$files[] = $dir.$item;
+				}
+				$target =  __DIR__.'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
+				if (!self::buildJavascript($files, $target, $options['minifyscript'] ? ($options['script'] ?? []) : null)) {
+					$success = false;
+				}
+			}
+			return $success;
 		}
 		return false;
 	}

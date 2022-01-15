@@ -136,6 +136,11 @@ Preload is implemented through a "Link" header, which lists all the assets to pr
 
 == Changelog ==
 
+= Version 0.5.8 =
+
+* Added hook to rebuild the assets when a plugin is updated
+* Added CLI command "torque rebuild"
+
 = Version 0.5.7 =
 
 * Updated dependencies to fix issues with minifying Javascript
