@@ -1,10 +1,10 @@
 === Torque - Optimise the transport of your Website ===
 Contributors: hexydec
 Tags: minify,minification,performance,security,optimization
-Requires at least: 5.7
-Tested up to: 5.8
-Requires PHP: 7.3
-Stable tag: 0.5.8
+Requires at least: 5.9
+Tested up to: 5.9
+Requires PHP: 8.0
+Stable tag: 0.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -135,6 +135,10 @@ Preload is best when your site is delivered over HTTPS using the HTTP/2.0 protoc
 Preload is implemented through a "Link" header, which lists all the assets to preload. When setup correctly, your server will read this header and bundle the listed assets and push them onto the client. When not enabled at server level, the header is passed to the client who can request the assets immediately upon receipt of the page. If any of these assets are chained within other assets, the preload header will enable the browser to fetch them earlier.
 
 == Changelog ==
+
+= Version 0.6.0 =
+
+* Updated dependencies to fix PHP 8.0/8.1 issues
 
 = Version 0.5.8 =
 
