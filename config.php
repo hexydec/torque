@@ -350,7 +350,7 @@ class config extends packages {
 					'type' => 'checkbox',
 					'description' => 'Convert quotes to the same quote style (All quotes become double quotes for better gzip)',
 					'value' => '"',
-					'default' => true
+					'default' => '"'
 				],
 				'script_booleans' => [
 					'label' => 'Booleans',

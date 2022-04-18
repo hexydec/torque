@@ -237,7 +237,9 @@ class admin extends config {
 			if (empty($this->options[$group]['options'][$key]['values']) && !empty($this->options[$group]['options'][$key]['datasource'])) {
 				$this->options[$group]['options'][$key]['values'] = \call_user_func($this->options[$group]['options'][$key]['datasource']);
 			}
-			return $this->options[$group]['options'][$key]['values'];
+			if ($this->options[$group]['options'][$key]['values']) {
+				return $this->options[$group]['options'][$key]['values'];
+			}
 		}
 		return [];
 	}
