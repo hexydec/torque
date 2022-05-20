@@ -16,7 +16,7 @@ class packages {
 	/**
 	 * @var string VERSION The version number of the application, this is used in the cache key for CSS/Javascript that is minified
 	 */
-	public const VERSION = '0.6.0';
+	public const VERSION = '0.6.3';
 
 	/**
 	 * @var string INSTALLDIR The folder where the dependencies are stored
@@ -63,7 +63,7 @@ class packages {
 	public static function autoload() : void {
 		\spl_autoload_register(function (string $class) : bool {
 			$dir = self::INSTALLDIR;
-			foreach (self::$packages AS $key => $item) {
+			foreach (self::$packages AS $item) {
 				if ($item['class'] === $class && \file_exists($dir.$item['autoload'])) {
 					return require($dir.$item['autoload']);
 				}

@@ -33,7 +33,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'PHP Version',
-						'badge' => phpversion()
+						'badge' => \phpversion()
 					]
 				]
 			],
@@ -42,7 +42,7 @@ class overview extends assets {
 				'params' => [
 					[
 						'title' => 'MIME Type',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							if (!empty($data['content-type'])) {
 								$value = $data['content-type'];
 								if (($pos = \strpos($value, ';')) !== false) {
@@ -58,11 +58,11 @@ class overview extends assets {
 					],
 					[
 						'title' => 'HTML Size (Uncompressed)',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$status = $data['uncompressed'] < 100000;
 							return \number_format($data['uncompressed']).' bytes';
 						},
-						'html' => function (array $data) {
+						'html' => function (array $data) : string {
 							$html = '<p>This is the size of your homepage in bytes.</p>
 								<p>Reducing the overall size of your HTML will ensure the browser doesn\'t have to work too hard to render your page onto the user\'s screen.</p>
 								<p>Currently your page is '.\number_format($data['uncompressed']).' bytes, '.($data['uncompressed'] < 100000 ? 'which isn\'t too big' : ($data['uncompressed'] < 200000 ? 'which is a little on the large side' : 'which is quite big, you should look at how you can reduce this to make sure the browser doesn\'t have to work so hard to render your page')).'.</p>';
@@ -71,7 +71,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'HTML Size (Compressed)',
-						'badge' => function (array $data) {
+						'badge' => function (array $data) : ?string {
 							if (!empty($data['compressed'])) {
 								return \number_format($data['compressed']).' bytes';
 							}
@@ -81,11 +81,11 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Compression Ratio',
-						'badge' => function (array $data, ?bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : ?string {
 							if (!empty($data['compressed'])) {
 								$ratio = 100 - ((100 / $data['uncompressed']) * $data['compressed']);
 								$status = $ratio > 50;
-								return number_format($ratio, 1).'%';
+								return \number_format($ratio, 1).'%';
 							}
 							return null;
 						},
@@ -93,7 +93,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Compression Algorithm',
-						'badge' => function (array $data, ?bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : ?string {
 							if (!empty($data['content-encoding'])) {
 								$values = [
 									'deflate' => 'Deflate',
@@ -105,7 +105,7 @@ class overview extends assets {
 							}
 							return null;
 						},
-						'html' => function (array $data) {
+						'html' => function (array $data) : ?string {
 							if (!empty($data['content-encoding'])) {
 								$html = '<p>The algorithm that is used to compress your page will determine the compression ratio.</p>';
 								if ($data['content-encoding'] === 'deflate') {
@@ -125,9 +125,9 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Generation Time',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$status = $data['time'] < 0.3;
-							return number_format($data['time'], 4).'secs';
+							return \number_format($data['time'], 4).'secs';
 						},
 						'html' => '<p>This is the amount of time it takes to generate your page, the lower this is, the better for users and the more users you will be able to serve with your infrastructure.</p>
 							<p>You can drastically reduce this value by caching your pages, your server can then just serve a static file instead of having to generate it each time.</p>'
@@ -140,7 +140,7 @@ class overview extends assets {
 					[
 						'title' => 'Stylesheets',
 						'header' => 'assets',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$count = 0;
 							if ($data['assets']) {
 								foreach ($data['assets'] AS $item) {
@@ -152,7 +152,7 @@ class overview extends assets {
 							$status = $count < 10;
 							return $count.' Stylesheets';
 						},
-						'html' => function (array $data) {
+						'html' => function (array $data) : ?string {
 							if ($data['assets']) {
 								$base = \get_home_url();
 								$dir = \get_home_path();
@@ -164,7 +164,7 @@ class overview extends assets {
 										$size = \file_exists($dir.$item['name']) ? \filesize($dir.$item['name']) : false;
 										$total += $size;
 										$count++;
-										$html .= '<li>'.basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
+										$html .= '<li>'.\basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
 									}
 								}
 								$html .= '</ul>';
@@ -177,7 +177,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Scripts',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$count = 0;
 							if ($data['assets']) {
 								foreach ($data['assets'] AS $item) {
@@ -189,7 +189,7 @@ class overview extends assets {
 							$status = $count < 10;
 							return $count.' Scripts';
 						},
-						'html' => function (array $data) {
+						'html' => function (array $data) : ?string {
 							if ($data['assets']) {
 								$base = \get_home_url();
 								$dir = \get_home_path();
@@ -201,7 +201,7 @@ class overview extends assets {
 										$size = \file_exists($dir.$item['name']) ? \filesize($dir.$item['name']) : false;
 										$total += $size;
 										$count++;
-										$html .= '<li>'.basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
+										$html .= '<li>'.\basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
 									}
 								}
 								$html .= '</ul>';
@@ -214,7 +214,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Fonts',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$count = 0;
 							if ($data['assets']) {
 								foreach ($data['assets'] AS $item) {
@@ -226,7 +226,7 @@ class overview extends assets {
 							$status = $count < 10;
 							return $count.' Fonts';
 						},
-						'html' => function (array $data) {
+						'html' => function (array $data) : ?string {
 							if ($data['assets']) {
 								$base = \get_home_url();
 								$dir = \get_home_path();
@@ -238,7 +238,7 @@ class overview extends assets {
 										$size = \file_exists($dir.$item['name']) ? \filesize($dir.$item['name']) : false;
 										$total += $size;
 										$count++;
-										$html .= '<li>'.basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
+										$html .= '<li>'.\basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
 									}
 								}
 								$html .= '</ul>';
@@ -252,7 +252,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Images',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							$count = 0;
 							if ($data['assets']) {
 								foreach ($data['assets'] AS $item) {
@@ -264,7 +264,7 @@ class overview extends assets {
 							$status = $count < 10;
 							return $count.' Images';
 						},
-						'html' => function (array $data) {
+						'html' => function (array $data) : ?string {
 							if ($data['assets']) {
 								$base = \get_home_url();
 								$dir = \get_home_path();
@@ -277,7 +277,7 @@ class overview extends assets {
 										$total += $size;
 										$count++;
 										if ($size >= 50000) {
-											$html .= '<li>'.basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
+											$html .= '<li>'.\basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
 										}
 									}
 								}
@@ -298,7 +298,7 @@ class overview extends assets {
 					[
 						'title' => 'Compression',
 						'header' => 'encoding',
-						'badge' => function (array $data, ?bool &$enabled = null) {
+						'badge' => function (array $data, ?bool &$enabled = null) : string {
 							$encodings = [
 								'deflate' => 'Deflate',
 								'gzip' => 'GZip',
@@ -307,7 +307,7 @@ class overview extends assets {
 							$enabled = !empty($data['encoding']);
 							return $enabled ? ($encodings[$data['encoding']] ?? 'Unknown') : 'Not Enabled';
 						},
-						'html' => function (array $data) {
+						'html' => function (array $data) : string {
 							return '<p>Enabling compression tells your server to zip up your HTML (and other compressible assets) before they are sent to the client, who then inflates the content after it is received, thus sending less bytes down the wire. You can normally achieve around 70% or more compression.</p>
 							<p>'.(empty($data['encoding']) ? 'You can enable compression by editing your .htaccess file or your websites Nginx config.' : ($data['encoding'] !== 'br' ? 'You have compression enabled, but upgrading your server to use Brotli compression will increase the compression ratio. You may have to add a module to your webserver to enable this algorithm.' : '')).'</p>';
 						}
@@ -315,7 +315,7 @@ class overview extends assets {
 					[
 						'title' => 'ETags',
 						'header' => 'etag',
-						'badge' => function (array $data, ?bool &$enabled = null) {
+						'badge' => function (array $data, ?bool &$enabled = null) : string {
 							$enabled = !empty($data['etag']);
 							return $enabled ? 'Enabled' : 'Disabled';
 						},
@@ -325,7 +325,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Browser Cache',
-						'badge' => function (array $data, ?bool &$enabled = null) {
+						'badge' => function (array $data, ?bool &$enabled = null) : string {
 							if (!empty($data['cache-control']) && ($pos = \strpos($data['cache-control'], 'max-age=')) !== false) {
 								$enabled = true;
 								$pos += 8;
@@ -340,7 +340,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Shared Cache Life',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							if (!empty($data['cache-control']) && ($pos = \strpos($data['cache-control'], 's-maxage=')) !== false) {
 								$pos += 9;
 								$end = \strpos($data['cache-control'], ',', $pos);
@@ -359,7 +359,7 @@ class overview extends assets {
 					[
 						'title' => 'Static Cache',
 						'header' => 'x-cache-status',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							if (empty($data['x-cache-status']) && empty($data['cf-cache-status'])) {
 								$status = false;
 								return 'Not Configured';
@@ -370,22 +370,22 @@ class overview extends assets {
 							$status = true;
 							return 'Enabled';
 						},
-						'html' => function (array $data) {
-							$status = $data['x-cache-status'] ?? ($data['cf-cache-status'] ?? null);
+						'html' => function (array $data) : string {
+							// $status = $data['x-cache-status'] ?? ($data['cf-cache-status'] ?? null);
 							return '<p>We tested your page to see if it sent back a header that indicated whether a static cache was enabled. When enabled, the cache manager normally adds a header to the response that indicates whether the cache was used.</p>';
 						}
 					],
 					[
 						'title' => 'Preload',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							if (!empty($data['link']) && ($assets = $this->getLinkAssets($data['link'], 'preload')) !== null) {
 								$status = true;
-								return count($assets).' Assets';
+								return \count($assets).' Assets';
 							}
 							$status = false;
 							return 'No assets';
 						},
-						'html' => function (array $data) {
+						'html' => function (array $data) : string {
 							$html = '<p>Preloading assets along with HTTP/2.0 Push sends the client the selected assets along with the requested page without the client requesting them, then when the page loads and the assets are required, they are already available.</p>
 								<p>Even without HTTP/2.0 Push this should enable pages to load faster, as it will tell the browser to request the selected assets at the earliest opportunity, and flattens any chained assets.</p>';
 							if (!empty($data['link']) && ($assets = $this->getLinkAssets($data['link'], 'preload')) !== null) {
@@ -406,7 +406,7 @@ class overview extends assets {
 				'params' => [
 					[
 						'title' => 'Transport Encrypted (HTTPS)',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							$status = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 							return $status ? 'Enabled' : 'Not Enabled';
 						},
@@ -417,7 +417,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Prevent MIME Type Sniffing',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							$status = $data['x-content-type-options'] === 'nosniff';
 							return $status ? 'Enabled' : 'Not Enabled';
 						},
@@ -427,7 +427,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Cross Site Scripting Protection',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							$status = !empty($data['x-xss-protection']);
 							return $status ? 'Enabled' : 'Not Enabled';
 						},
@@ -437,7 +437,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Website Embedding',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							$status = !empty($data['x-iframe-options']);
 							$options = [
 								'allow' => 'Allowed',
@@ -451,7 +451,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Content Security Policy',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							$status = !empty($data['content-security-policy']);
 							return $status ? 'Configured' : 'Not Configured';
 						},
@@ -461,7 +461,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Force SSL',
-						'badge' => function (array $data, bool &$status = null) {
+						'badge' => function (array $data, bool &$status = null) : string {
 							$status = !empty($data['strict-transport-security']);
 							return $status ? \number_format($data['strict-transport-security']).' secs' : 'Not Enabled';
 						},
@@ -483,15 +483,15 @@ class overview extends assets {
 	protected function getLinkAssets(string $link, ?string $type = null) : ?array {
 		$assets = [];
 		if (!empty($link)) {
-			foreach (explode(',', $link) AS $item) {
+			foreach (\explode(',', $link) AS $item) {
 				$props = [];
-				foreach (explode(';', $item) AS $value) {
-					$value = trim($value);
+				foreach (\explode(';', $item) AS $value) {
+					$value = \trim($value);
 					if ($value[0] === '<') {
-						$props['url'] = trim($value, '<>');
-					} elseif (strpos($value, '=') !== false) {
-						list($key, $val) = explode('=', $value, 2);
-						$props[$key] = trim($val, '"');
+						$props['url'] = \trim($value, '<>');
+					} elseif (\strpos($value, '=') !== false) {
+						list($key, $val) = \explode('=', $value, 2);
+						$props[$key] = \trim($val, '"');
 					} else {
 						$props[$value] = true;
 					}

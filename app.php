@@ -18,7 +18,7 @@ class app extends config {
 		$json = \json_encode($options);
 
 		// callback for minifying and caching
-		$minify = function (string $code, array $minify, string $tag) use ($json) {
+		$minify = function (string $code, array $minify, string $tag) use ($json) : string {
 
 			// transient key
 			$cache = empty($minify['cache']) ? null : self::SLUG.'-style-'.\md5(self::VERSION.$json.$code);
@@ -294,7 +294,7 @@ class app extends config {
 
 		// check against hash of input HTML
 		$etag = '"'.\md5($html).'"';
-		if (isset($headers[$key]) && \mb_stripos($headers[$match], $etag) !== false) {
+		if (isset($headers[$key]) && \mb_stripos($headers[$key], $etag) !== false) {
 			return true;
 		} else {
 			\header('Etag: '.$etag);
