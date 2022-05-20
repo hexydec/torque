@@ -139,6 +139,7 @@ Preload is implemented through a "Link" header, which lists all the assets to pr
 = Version 0.6.3 =
 
 * Updated dependencies for better PHP 8.1 compatibility
+* Improved type hinting
 
 = Version 0.6.2 =
 
