@@ -255,7 +255,7 @@ class assets {
 			}
 
 			// create the directory if it doesn't exist
-			$dir =  \dirname($target);
+			$dir = \dirname($target);
 			if (!\is_dir($dir)) {
 				\mkdir($dir, 0755);
 			}
