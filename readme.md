@@ -76,7 +76,7 @@ Do this before you enable the plugin, and then again after you have enabled and 
 
 Some advanced minification optimisations can cause issues with your website's layout, or break your Javascript depending on how your CSS/Javascript selectors are setup.
 
-For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=input]`, the selector will no longer match. See [https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md](HTMLdoc: Mitigating Side Effects of Minification) for solutions.
+For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=input]`, the selector will no longer match. See [HTMLdoc: Mitigating Side Effects of Minification](https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md) for solutions.
 
 ### Why is HTMLdoc best in class?
 
