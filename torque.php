@@ -9,7 +9,7 @@ namespace hexydec\torque;
 Plugin Name:	Torque - Optimise the transport of your Website
 Plugin URI:		https://github.com/hexydec/torque
 Description:	Make your Wordpress website noticably faster by optimising how it is delivered. Analyse your website's performance and security, minify and combine your assets, and configure an array of performance and security settings quickly and easily with this comprehensive plugin. Achieves the best compression of any minification plugin.
-Version:		0.6.3
+Version:		0.6.5
 Requires PHP:	7.4
 Author:			Hexydec
 Author URI:		https://github.com/hexydec/
@@ -24,25 +24,25 @@ require(__DIR__.'/autoload.php');
 
 	// from GitHub, download packages
 	if (\class_exists('\\hexydec\\torque\\installExternal')) {
-		$obj = new \hexydec\torque\installExternal();
+		$obj = new installExternal();
 
 	// for Wordpress, packages are included
 	} else {
-		$obj = new \hexydec\torque\install();
+		$obj = new install();
 	}
 	$obj->install();
 });
 
 // install the admin menu
 \add_action('admin_menu', function () {
-	$obj = new \hexydec\torque\admin();
+	$obj = new admin();
 	$obj->update();
 	$obj->draw();
 });
 
 // load the app
 \add_action('wp_loaded', function () {
-	$obj = new \hexydec\torque\app();
+	$obj = new app();
 	$obj->optimise();
 });
 
@@ -51,7 +51,7 @@ require(__DIR__.'/autoload.php');
 
 // rebuild files when a plugin is updated
 \add_action('upgrader_process_complete', function () {
-	\hexydec\torque\assets::rebuildAssets();
+	assets::rebuildAssets();
 });
 
 // add rebuild command

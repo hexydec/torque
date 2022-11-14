@@ -310,7 +310,7 @@ class app extends config {
 	 */
 	protected function getContentSecurityPolicy(array $config) : ?string {
 		$fields = [
-			'default' => 'default',
+			'default' => 'default-src',
 			'style' => 'style-src',
 			'script' => 'script-src',
 			'image' => 'image-src',
