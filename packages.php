@@ -16,7 +16,7 @@ class packages {
 	/**
 	 * @var string VERSION The version number of the application, this is used in the cache key for CSS/Javascript that is minified
 	 */
-	public const VERSION = '0.6.4';
+	public const VERSION = '0.7.0';
 
 	/**
 	 * @var string INSTALLDIR The folder where the dependencies are stored

@@ -69,7 +69,7 @@ class config extends packages {
 				'stats' => [
 					'label' => 'Show Stats',
 					'type' => 'checkbox',
-					'description' => 'Show stats in the console (This will prevent 304 responses from working and should only be used for testing)',
+					'description' => 'Show stats in the console (Only for yourself)',
 					'default' => false
 				]
 			]
@@ -358,6 +358,12 @@ class config extends packages {
 					'description' => 'Shorten booleans (e.g. true beomes !0 and false becomes !1)',
 					'default' => true
 				],
+				'script_numbers' => [
+					'label' => 'Numberds',
+					'type' => 'checkbox',
+					'description' => 'Remove underscores from numbers',
+					'default' => true
+				],
 				'script_cache' => [
 					'label' => 'Cache',
 					'type' => 'checkbox',
@@ -509,10 +515,10 @@ class config extends packages {
 			]
 		],
 		'preload' => [
-			'tab' => 'Push',
-			'name' => 'HTTP/2.0 Push',
-			'desc' => 'Edit the HTTP/2.0 Push settings',
-			'html' => '<p>Push assets to the client on first load to make it appear faster. This requires your server to support HTTP/2.0 Push, and it must be served over HTTPS. It will improve your load time without HTTP/2.0 support, but you will get more performance with support. <em>Note that this will set a cookie called "torque-preload".</em></p>',
+			'tab' => 'Preload',
+			'name' => 'Asset Preloading',
+			'desc' => 'Edit the asset preloading settings',
+			'html' => '<p>Notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page. For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.</p>',
 			'options' => [
 				'preload' => [
 					'label' => 'Push Assets',
@@ -544,6 +550,9 @@ class config extends packages {
 		// bind data
 		$url = \get_home_url().'/?notorque';
 		$dir = \dirname(\dirname(\dirname(__DIR__))).'/'; // can't use get_home_path() here
+
+		// set current user as value of stats option
+		$this->options['settings']['options']['stats']['value'] = \get_current_user_id();
 
 		// datasource for selecting assets to preload
 		$this->options['preload']['options']['preload']['datasource'] = function () use ($url) {
@@ -616,7 +625,7 @@ class config extends packages {
 					$files[] = $dir.$item;
 				}
 				$target =  __DIR__.'/build/'.\md5(\implode(',', $value)).'.js';
-				if (!assets::buildJavascript($files, $target, $options['minifyscript'] ? ($options['script'] ?? []) : null)) {
+				if (!assets::buildJavascript($value, $target, $options['minifyscript'] ? ($options['script'] ?? []) : null)) {
 					\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
 				}
 			}

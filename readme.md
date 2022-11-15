@@ -38,7 +38,7 @@ The plugin also includes a suite of security features to help you secure your we
 	- Control how the site can be embedded
 	- Enable HSTS to force browsers to only connect over HTTPS
 	- Specify Content-Security-Policy to control what domains can connect and embed content in your site
-- HTTP/2.0 Push
+- Preload
 	- Select which assets to push with first load
 	- Push combined stylesheets
 - Administration panel to control all features, including all minification optimisations
@@ -90,7 +90,7 @@ All three libraries have automated test suites to ensure reliability, and should
 
 Content Security Policy (CSP) is a very powerful browser security feature that only enables assets to be downloaded from the specified domains. Any assets that are downloaded from domains that are not listed will be blocked.
 
-### How do I setup my Content-Security-Policy?
+### How do I setup my Content Security Policy?
 
 Using the developer tools in your browser (Press F12), look at the network tab on each page, and note down the domains that are used for different assets, along with their asset type. You can then enter those domains in to the relevant CSP boxes. Be sure to run any extra features of your website that use Fetch or XHR, as these connections are also bound by CSP.
 
@@ -98,13 +98,11 @@ Once the domains are entered, and with the CSP setting set to "Enabled only for 
 
 When you are happy that all domains and settings are set correctly, you can enable the CSP setting.
 
-### How does HTTP/2.0 preload work?
+### How does preload work?
 
-To enable preload, you must have an HTTP/2.0 enabled server, and your website must be served over HTTPS. You may also have to specifically configure your server to enable preload.
+Preload works by notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page.
 
-Preload works by "pushing" the selected assets onto the client when they first request a page, so they receive assets they haven't requested in the initial payload. When the users browser then parses the page, and knows what assets to request, the browser already has them ready to load.
-
-To prevent continually pushing assets onto the client on each page load, a cookie (called "torque-preload") is used to indicate that assets have already been pushed to the client.
+For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.
 
 ### My server doesn't support HTTP/2.0 or my website is not served over HTTPS, can I still use preload?
 

@@ -108,26 +108,17 @@ class app extends config {
 			}
 
 			// HTTP/2.0 preload
-			$key = 'torque-preload';
-			if (empty($_COOKIE[$key]) && (!empty($options['preload']) || !empty($options['preloadstyle']))) {
+			if (!empty($options['preload']) || !empty($options['preloadstyle'])) {
 
 				// add combined stylesheet
 				if ($options['preloadstyle'] && $options['combinestyle']) {
 					$file = __DIR__.'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
-					$root = \dirname(\dirname(\dirname(__DIR__)));
+					$root = \dirname(\dirname(\dirname(__DIR__))).'/';
 					$options['preload'][] = \str_replace('\\', '/', \mb_substr($file, \mb_strlen($root)).'?'.\filemtime($file));
 				}
 
 				// set header
-				\header('Link: '.$this->getPreloadLinks($options['preload']));
-				\setcookie($key, '1', [
-					'expires' => \time() + 31536000,
-					'path' => '/',
-					'domain' => $_SERVER['HTTP_HOST'],
-					'secure' => true,
-					'httponly' => true,
-					'samesite' => 'Lax'
-				]);
+				\header('Link: '.$this->getPreloadLinks($options['preload']), false);
 			}
 
 			// check some options are set that require htmldoc
@@ -169,7 +160,6 @@ class app extends config {
 						// combine style
 						if (!empty($options['combinestyle'])) {
 							foreach ($options['combinestyle'] AS $item) {
-								$len = \strlen($html);
 								$doc->remove('link[rel=stylesheet][href*="'.$item.'"]');
 							}
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
@@ -179,53 +169,20 @@ class app extends config {
 
 						// combine style
 						if (!empty($options['combinescript'])) {
-							global $wp_scripts;
-							$js = $wp_scripts->registered;
 
 							// remove scripts we are combining
-							$before = [];
-							$after = [];
-							$anchor = null;
 							foreach ($options['combinescript'] AS $item) {
 								$script = $doc->find('script[src*="'.$item.'"]');
 								if (($id = $script->attr("id")) !== null) {
-									$extra = \substr($id, 0, -3);
-									if (!empty($js[$extra]->extra['before']) || !empty($js[$extra]->extra['data'])) {
-										$before[] = $id.'-extra';
-									} elseif (!empty($js[$extra]->extra['after'])) {
-										$after[] = $id.'-extra';
-									}
+									$doc->find('script[id="'.$id.'-extra"]')->remove();
 								}
-								if ($anchor) {
-									$script->remove();
-								} else {
-									$anchor = $script;
-								}
-							}
-							$scripts = '';
-
-							// move the before inline scripts to the bottom
-							if ($before) {
-								$inline = $doc->find('script[id='.\implode('],script[id=', $before).']');
-								$scripts .= $inline->html();
-								$inline->remove();
+								$script->remove();
 							}
 
 							// append the combined file to the body tag
 							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
 							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$scripts .= '<script src="'.\esc_html($url).'"></script>';
-
-							// move the after inline scripts to the bottom
-							if ($after) {
-								$inline = $doc->find('script[id='.\implode('],script[id=', $after).']');
-								$scripts .= $inline->html();
-								$inline->remove();
-							}
-
-							// append them to the anchor point
-							$anchor->after($scripts);
-							$anchor->remove();
+							$doc->find('body')->append('<script src="'.\esc_html($url).'"></script>');
 						}
 
 						// build the minification options
@@ -239,7 +196,7 @@ class app extends config {
 						$min = $doc->html();
 
 						// show stats in the console
-						if (!empty($options['stats']) && !empty($options['minifyhtml'])) {
+						if (!empty($options['minifyhtml']) && ($options['stats'] ?? null) === \get_current_user_id()) {
 							$timing['Complete'] = \microtime(true);
 							$min .= $this->drawStats($html, $min, $timing);
 						}
@@ -341,7 +298,12 @@ class app extends config {
 		$as = [
 			'.css' => 'style',
 			'.woff' => 'font',
-			'.woff2' => 'font'
+			'.woff2' => 'font',
+			'.mp3' => 'audio',
+			'.ogg' => 'audio',
+			'.vtt' => 'track',
+			'.mp4' => 'video',
+			'.webm' => 'video'
 		];
 
 		// build links

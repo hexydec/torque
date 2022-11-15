@@ -41,9 +41,9 @@ The plugin also includes a suite of security features to help you secure your we
     * Control how the site can be embedded
     * Enable HSTS to force browsers to only connect over HTTPS
     * Specify Content-Security-Policy to control what domains can connect and embed content in your site
-* HTTP/2.0 Push
-	* Select which assets to push with first load
-	* Push combined stylesheets
+* Preload
+	* Select which assets to preload with first load
+	* Preload combined stylesheets
 * Administration panel to control all features, including all minification optimisations
 
 See the [Torque Github homepage](https://github.com/hexydec/torque) for more information.
@@ -64,7 +64,7 @@ It is recommended that you do not use this plugin with other minification plugin
 5. The Javascript tab enables you to specify your Javascript minification settings
 6. The Caching screen gives you some browser cache and shared cache settings
 7. The Security screen enables you to set some security headers and specify a Content-Security-Policy
-8. The Preload screen lets you select which assets will be preloaded with HTTP/2.0 preload
+8. The Preload screen lets you select which assets will be preloaded
 
 == Frequently Asked Questions ==
 
@@ -98,7 +98,7 @@ Do this before you enable the plugin, and then again after you have enabled and 
 
 Some advanced minification optimisations can cause issues with your website's layout, or break your Javascript depending on how your CSS/Javascript selectors are setup.
 
-For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=input]`, the selecctor will no longer match. See [https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md](HTMLdoc: Mitigating Side Effects of Minification) for solutions.
+For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=input]`, the selector will no longer match. See [HTMLdoc: Mitigating Side Effects of Minification](https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md) for solutions.
 
 = Why is HTMLdoc best in class? =
 
@@ -120,27 +120,27 @@ Once the domains are entered, and with the CSP setting set to "Enabled only for 
 
 When you are happy that all domains and settings are set correctly, you can enable the CSP setting.
 
-= How does HTTP/2.0 preload work? =
+= How does preload work? =
 
-To enable preload, you must have an HTTP/2.0 enabled server, and your website must be served over HTTPS. You may also have to specifically configure your server to enable preload.
-
-Preload works by "pushing" the selected assets onto the client when they first request a page, so they receive assets they haven't requested in the initial payload. When the users browser then parses the page, and knows what assets to request, the browser already has them ready to load.
-
-To prevent continually pushing assets onto the client on each page load, a cookie (called "torque-preload") is used to indicate that assets have already been pushed to the client.
-
-= My server doesn't support HTTP/2.0 or my website is not served over HTTPS, can I still use preload? =
-
-Preload is best when your site is delivered over HTTPS using the HTTP/2.0 protocol, but you can still take advantage of preload without this setup, but it won't be quite as fast as with it setup correctly.
-
-Preload is implemented through a "Link" header, which lists all the assets to preload. When setup correctly, your server will read this header and bundle the listed assets and push them onto the client. When not enabled at server level, the header is passed to the client who can request the assets immediately upon receipt of the page. If any of these assets are chained within other assets, the preload header will enable the browser to fetch them earlier.
+Preload works by notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page. For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.
 
 == Changelog ==
+
+= Version 0.7.0 =
+
+* Improved Javascript combine function to offload inline javascript into the bundle file and fix ordering issues
+* More Javascript minification options
+* Improved overview metrics
+* Console stats now only show for the admin who set the setting
+* Removed support for HTTP/2.0 Push, only preload is now suppoorted
+* Lots of bug fixes
+* Syntax improvements
 
 = Version 0.6.5 =
 
 * Tested with Wordpress v6.1
 * Fixed bug in Content-Security-Policy generator where a directive was not spelt correctly
-* Updated JSlite to fix some javascript handling issues
+* Updated dependencies
 * Minor syntax improvements
 
 = Version 0.6.4 =

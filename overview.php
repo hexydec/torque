@@ -27,8 +27,8 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Server',
-						'badge' => function (array $data) {
-							return $data['server'];
+						'badge' => function (array $data) : ?string {
+							return $data['server'] ?? null;
 						}
 					],
 					[
@@ -45,10 +45,10 @@ class overview extends assets {
 						'badge' => function (array $data, ?bool &$status = null) : string {
 							if (!empty($data['content-type'])) {
 								$value = $data['content-type'];
-								if (($pos = \strpos($value, ';')) !== false) {
-									$value = \substr($value, 0, $pos);
+								if (($pos = \mb_strpos($value, ';')) !== false) {
+									$value = \mb_substr($value, 0, $pos);
 								}
-								$status = in_array($value, ['text/html', 'application/xhtml+xml']);
+								$status = \in_array($value, ['text/html', 'application/xhtml+xml']);
 								return $value;
 							}
 							$status = false;
@@ -71,8 +71,9 @@ class overview extends assets {
 					],
 					[
 						'title' => 'HTML Size (Compressed)',
-						'badge' => function (array $data) : ?string {
+						'badge' => function (array $data, ?bool &$status = null) : ?string {
 							if (!empty($data['compressed'])) {
+								$status = $data['compressed'] < 20000;
 								return \number_format($data['compressed']).' bytes';
 							}
 							return null;
@@ -113,7 +114,7 @@ class overview extends assets {
 								} elseif ($data['content-encoding'] === 'gzip') {
 									$html .= '<p>Your page is being compressed using the Gzip algorithm, this is the most common type of transport compression used on the internet.</p>';
 								} elseif ($data['content-encoding'] === 'br') {
-									$html .= '<p>Your page is being compressed using the Brotli algorithm, this is the newest compression algorithm that browsers support, and will give you the besst compression ratio.</p>';
+									$html .= '<p>Your page is being compressed using the Brotli algorithm, this is the newest compression algorithm that browsers support, and will give you the best compression ratio.</p>';
 								}
 								if ($data['content-encoding'] !== 'br') {
 									$html .= '<p>To get better compression use the Brotli algorithm, it has a built in dictionary of common strings which doesn\'t need to be transmitted with the payload, resulting in up to 25% better compression. But it is much newer, and so your host may not support it yet.</p>';
@@ -139,22 +140,21 @@ class overview extends assets {
 				'params' => [
 					[
 						'title' => 'Stylesheets',
-						'header' => 'assets',
-						'badge' => function (array $data, ?bool &$status = null) : string {
-							$count = 0;
+						'badge' => function (array $data, ?bool &$status = null) : ?string {
 							if ($data['assets']) {
+								$count = 0;
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Stylesheets') {
 										$count++;
 									}
 								}
+								$status = $count < 10;
+								return $count.' Stylesheets';
 							}
-							$status = $count < 10;
-							return $count.' Stylesheets';
+							return null;
 						},
 						'html' => function (array $data) : ?string {
 							if ($data['assets']) {
-								$base = \get_home_url();
 								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
@@ -177,21 +177,21 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Scripts',
-						'badge' => function (array $data, ?bool &$status = null) : string {
-							$count = 0;
+						'badge' => function (array $data, ?bool &$status = null) : ?string {
 							if ($data['assets']) {
+								$count = 0;
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Scripts') {
 										$count++;
 									}
 								}
+								$status = $count < 10;
+								return $count.' Scripts';
 							}
-							$status = $count < 10;
-							return $count.' Scripts';
+							return null;
 						},
 						'html' => function (array $data) : ?string {
 							if ($data['assets']) {
-								$base = \get_home_url();
 								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
@@ -214,21 +214,21 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Fonts',
-						'badge' => function (array $data, ?bool &$status = null) : string {
-							$count = 0;
+						'badge' => function (array $data, ?bool &$status = null) : ?string {
 							if ($data['assets']) {
+								$count = 0;
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Fonts') {
 										$count++;
 									}
 								}
+								$status = $count < 10;
+								return $count.' Fonts';
 							}
-							$status = $count < 10;
-							return $count.' Fonts';
+							return null;
 						},
 						'html' => function (array $data) : ?string {
 							if ($data['assets']) {
-								$base = \get_home_url();
 								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
@@ -252,21 +252,21 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Images',
-						'badge' => function (array $data, bool &$status = null) : string {
-							$count = 0;
+						'badge' => function (array $data, bool &$status = null) : ?string {
 							if ($data['assets']) {
+								$count = 0;
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Images') {
 										$count++;
 									}
 								}
+								$status = $count < 10;
+								return $count.' Images';
 							}
-							$status = $count < 10;
-							return $count.' Images';
+							return null;
 						},
 						'html' => function (array $data) : ?string {
 							if ($data['assets']) {
-								$base = \get_home_url();
 								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
@@ -297,24 +297,22 @@ class overview extends assets {
 				'params' => [
 					[
 						'title' => 'Compression',
-						'header' => 'encoding',
 						'badge' => function (array $data, ?bool &$enabled = null) : string {
 							$encodings = [
 								'deflate' => 'Deflate',
 								'gzip' => 'GZip',
 								'br' => 'Brotli'
 							];
-							$enabled = !empty($data['encoding']);
-							return $enabled ? ($encodings[$data['encoding']] ?? 'Unknown') : 'Not Enabled';
+							$enabled = !empty($data['content-encoding']);
+							return $enabled ? ($encodings[$data['content-encoding']] ?? 'Unknown') : 'Not Enabled';
 						},
 						'html' => function (array $data) : string {
 							return '<p>Enabling compression tells your server to zip up your HTML (and other compressible assets) before they are sent to the client, who then inflates the content after it is received, thus sending less bytes down the wire. You can normally achieve around 70% or more compression.</p>
-							<p>'.(empty($data['encoding']) ? 'You can enable compression by editing your .htaccess file or your websites Nginx config.' : ($data['encoding'] !== 'br' ? 'You have compression enabled, but upgrading your server to use Brotli compression will increase the compression ratio. You may have to add a module to your webserver to enable this algorithm.' : '')).'</p>';
+							<p>'.(empty($data['content-encoding']) ? 'You can enable compression by editing your .htaccess file or your websites Nginx config.' : ($data['content-encoding'] !== 'br' ? 'You have compression enabled, but upgrading your server to use Brotli compression will increase the compression ratio. You may have to add a module to your webserver to enable this algorithm.' : '')).'</p>';
 						}
 					],
 					[
 						'title' => 'ETags',
-						'header' => 'etag',
 						'badge' => function (array $data, ?bool &$enabled = null) : string {
 							$enabled = !empty($data['etag']);
 							return $enabled ? 'Enabled' : 'Disabled';
@@ -326,11 +324,11 @@ class overview extends assets {
 					[
 						'title' => 'Browser Cache',
 						'badge' => function (array $data, ?bool &$enabled = null) : string {
-							if (!empty($data['cache-control']) && ($pos = \strpos($data['cache-control'], 'max-age=')) !== false) {
+							if (!empty($data['cache-control']) && ($pos = \mb_strpos($data['cache-control'], 'max-age=')) !== false) {
 								$enabled = true;
 								$pos += 8;
-								$end = \strpos($data['cache-control'], ',', $pos);
-								return ($end !== false ? \substr($data['cache-control'], $pos, $end - $pos) : \substr($data['cache-control'], $pos)).' Secs';
+								$end = \mb_strpos($data['cache-control'], ',', $pos);
+								return ($end !== false ? \mb_substr($data['cache-control'], $pos, $end - $pos) : \mb_substr($data['cache-control'], $pos)).' Secs';
 							}
 							$enabled = false;
 							return 'Disabled';
@@ -341,10 +339,10 @@ class overview extends assets {
 					[
 						'title' => 'Shared Cache Life',
 						'badge' => function (array $data, bool &$status = null) : string {
-							if (!empty($data['cache-control']) && ($pos = \strpos($data['cache-control'], 's-maxage=')) !== false) {
+							if (!empty($data['cache-control']) && ($pos = \mb_strpos($data['cache-control'], 's-maxage=')) !== false) {
 								$pos += 9;
-								$end = \strpos($data['cache-control'], ',', $pos);
-								$value = $end !== false ? \substr($data['cache-control'], $pos, $end - $pos) : \substr($data['cache-control'], $pos);
+								$end = \mb_strpos($data['cache-control'], ',', $pos);
+								$value = $end !== false ? \mb_substr($data['cache-control'], $pos, $end - $pos) : \mb_substr($data['cache-control'], $pos);
 								$status = $value >= 0;
 								return $value.' Secs';
 							}
@@ -358,7 +356,6 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Static Cache',
-						'header' => 'x-cache-status',
 						'badge' => function (array $data, bool &$status = null) : string {
 							if (empty($data['x-cache-status']) && empty($data['cf-cache-status'])) {
 								$status = false;
@@ -463,7 +460,17 @@ class overview extends assets {
 						'title' => 'Force SSL',
 						'badge' => function (array $data, bool &$status = null) : string {
 							$status = !empty($data['strict-transport-security']);
-							return $status ? \number_format($data['strict-transport-security']).' secs' : 'Not Enabled';
+							if ($status && \preg_match('/max-age=([0-9]++)/i', $data['strict-transport-security'] ?? '', $match)) {
+								$secs = \intval($match[1]);
+								if ($secs > 2628000) {
+									return \number_format($secs / 2628000).' months';
+								} elseif ($secs > 86400) {
+									return \number_format($secs, 86400).' days';
+								} else {
+									return \number_format($secs).' secs';
+								}
+							}
+							return 'Not Enabled';
 						},
 						'html' => '<p>This setting tells the browser to only connect to this website over an encrypted channel. With this setting in place, once a user views your website, any subsequent views will only be allowed over HTTPS, for the amount of seconds specified.</p>
 							<p>If you plan to deliver your website over HTTPS only, you should enable this setting.</p>'
@@ -489,7 +496,7 @@ class overview extends assets {
 					$value = \trim($value);
 					if ($value[0] === '<') {
 						$props['url'] = \trim($value, '<>');
-					} elseif (\strpos($value, '=') !== false) {
+					} elseif (\mb_strpos($value, '=') !== false) {
 						list($key, $val) = \explode('=', $value, 2);
 						$props[$key] = \trim($val, '"');
 					} else {
@@ -521,12 +528,6 @@ class overview extends assets {
 			$html .= '<h2>'.\esc_html($group['title']).'</h2>
 				<div class="torque-overview__list">';
 			foreach ($group['params'] AS $p => $item) {
-				if (isset($item['header'])) {
-					$item['value'] = $data[$item['header']] ?? null;
-				}
-				if (isset($item['decorator'])) {
-					$item['value'] = \call_user_func($item['decorator'], $item['value'], $data);
-				}
 				$enabled = null;
 				$badge = isset($item['badge']) ? ($item['badge'] instanceof \Closure ? $item['badge']($data, $enabled) : $item['badge']) : null;
 				if (($item['value'] ?? null) !== null || $badge) {
@@ -566,28 +567,25 @@ class overview extends assets {
 		$url = \get_home_url().'/';
 
 		// define headers to enable compression
-		$headers = [
-			'Accept-Encoding: deflate,gzip,br'
-		];
-		$output = [];
+		$headers = ['Accept-Encoding: deflate, gzip, br'];
 
 		// time how long it takes to get the page
 		$time = \microtime(true);
-		if (($html = $this->getPage($url, $headers, $output)) !== false) {
-			$output['time'] = \microtime(true) - $time;
+		if (($html = $this->getPage($url, $headers)) !== false) {
+			$headers['time'] = \microtime(true) - $time;
 
 			// get the uncompressed page
 			if (!empty($headers['content-encoding'])) {
 				$uncompressed = $this->getPage($url);
-				$output['compressed'] = \strlen($html);
-				$output['uncompressed'] = \strlen($uncompressed);
+				$headers['compressed'] = \strlen($html);
+				$headers['uncompressed'] = \strlen($uncompressed);
 			} else {
-				$output['uncompressed'] = \strlen($html);
+				$headers['uncompressed'] = \strlen($html);
 			}
-			$output['assets'] = $this->getPageAssets($url);
+			$headers['assets'] = $this->getPageAssets($url);
 
 			// render the page
-			return $this->drawOverview($this->config, $output);
+			return $this->drawOverview($this->config, $headers);
 		}
 		return null;
 	}

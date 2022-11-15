@@ -22,11 +22,11 @@ class assets {
 	 * Retrieves the requested page content, and optionally sends the response headers back
 	 *
 	 * @param string $url The URL of the page to retrieve
-	 * @param array $headers Any headers to send with the page
+	 * @param array &$headers Any headers to send with the page, will also be filled with the response headers
 	 * @param array &$output A reference to the response headers, which will be filled as key => value
 	 * @return string|bool The contents of the requested page or false if it could not be fetched
 	 */
-	protected static function getPage(string $url, array $headers = [], array &$output = []) {
+	protected static function getPage(string $url, array &$headers = []) {
 		$key = \md5($url.\json_encode($headers));
 		if (!isset(self::$pages[$key])) {
 			self::$pages[$key] = false;
@@ -34,7 +34,7 @@ class assets {
 			// create context
 			$context = \stream_context_create([
 				'http' => [
-					'user_agent' => 'Mozilla/5.0 ('.PHP_OS.') hexydec\\torque '.packages::VERSION,
+					'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0 ('.PHP_OS.') hexydec\\torque '.packages::VERSION, // use browser agent if set
 					'header' => $headers
 				]
 			]);
@@ -43,16 +43,21 @@ class assets {
 			if (($fp = \fopen($url, 'rb', false, $context)) !== false && ($file = \stream_get_contents($fp)) !== false) {
 
 				// retrieve and compile the headers
-				$outputHeaders = [];
+				$headers = [];
 				$success = true;
 				if (($meta = \stream_get_meta_data($fp)) !== false && isset($meta['wrapper_data'])) {
 					foreach ($meta['wrapper_data'] AS $item) {
 						if (\mb_strpos($item, ': ') !== false) {
 							list($name, $value) = \explode(': ', $item, 2);
-							$outputHeaders[\mb_strtolower($name)] = $value;
+							$lower = \mb_strtolower($name);
+							if (isset($headers[$lower])) {
+								$headers[$lower] .= '; '.$value;
+							} else {
+								$headers[$lower] = $value;
+							}
 						} elseif (\mb_strpos($item, 'HTTP/') === 0) {
-							$outputHeaders['status'] = \explode(' ', $item)[1];
-							$success = $outputHeaders['status'] == 200;
+							$headers['status'] = \explode(' ', $item)[1];
+							$success = $headers['status'] == 200;
 						}
 					}
 
@@ -60,7 +65,7 @@ class assets {
 					if ($success) {
 						self::$pages[$key] = [
 							'page' => $file,
-							'headers' => $outputHeaders
+							'headers' => $headers
 						];
 					}
 				}
@@ -68,7 +73,7 @@ class assets {
 		}
 
 		// copy the output and send back page
-		$output = self::$pages[$key]['headers'] ?? [];
+		$headers = self::$pages[$key]['headers'] ?? [];
 		return self::$pages[$key]['page'] ?? false;
 	}
 
@@ -177,7 +182,7 @@ class assets {
 	 * @return array|bool An array of assets, each an array with 'id', 'group', and 'name', or false if the stylesheet could not be retrieved
 	 */
 	protected static function getStylesheetAssets(string $url) {
-		$file = WP_CONTENT_DIR.mb_substr($url, \mb_strlen(\content_url()));
+		$file = WP_CONTENT_DIR.\mb_substr($url, \mb_strlen(\content_url()));
 		$assets = [];
 		if (\file_exists($file) && ($css = \file_get_contents($file)) !== false) {
 			$types = [
@@ -201,16 +206,20 @@ class assets {
 				\chdir(\dirname($file));
 				$root = \get_home_path();
 				$len = \mb_strlen($root);
+				$webroot = \home_url();
+				$weblen = \mb_strlen($webroot);
 				foreach ($match AS $item) {
-					if (\mb_strpos($item[1], '/') === 0) {
-						$path = \rtrim($item[1], '/');
+					if (\mb_strpos($item[1], '//'.$_SERVER['HTTP_HOST'].'/') !== false) {
+						$path = \mb_substr($item[1], $weblen + 1);
+					} elseif (\mb_strpos($item[1], '/') === 0) {
+						$path = \trim($item[1], '/');
 					} elseif (($path = \realpath($item[1])) !== false) {
 						$path = \str_replace('\\', '/', \mb_substr($path, $len));
 					}
 					if ($path !== false) {
 						$assets[] = [
 							'id' => $path,
-							'group' => $types[$item[2]],
+							'group' => $types[$item[2]] ?? null,
 							'name' => $path
 						];
 					}
@@ -280,9 +289,22 @@ class assets {
 		$js = '';
 
 		// minify each file
+		$dir = \dirname(\dirname(\dirname(__DIR__))).'/'; // can't use get_home_path() here
 		foreach ($files AS $item) {
-			if (\file_exists($item) && ($file = \file_get_contents($item)) !== false) {
+			if (\file_exists($dir.$item) && ($file = \file_get_contents($dir.$item)) !== false) {
+
+				// add before script
+				if (($script = self::getExtraScript($item)) !== null && $script['type'] === 'before') {
+					$js .= ($js ? "\n\n" : '').$script['content'];
+				}
+
+				// add script
 				$js .= ($js ? "\n\n" : '').$file;
+
+				// add after script
+				if (($script['type'] ?? '') === 'after') {
+					$js .= ($js ? "\n\n" : '').$script['content'];
+				}
 			}
 		}
 
@@ -310,6 +332,39 @@ class assets {
 			}
 		}
 		return false;
+	}
+
+	protected static function getScriptAssets() {
+		static $scripts = null;
+		if ($scripts === null) {
+			$doc = new \hexydec\html\htmldoc();
+			$url = \home_url().'/?notorque';
+			if (($html = self::getPage($url)) !== false && $doc->load($html)) {
+				$scripts = [];
+				foreach ($doc->find('script[id]') AS $item) {
+					$scripts[$item->attr('id')] = [
+						'src' => $item->attr('src'),
+						'content' => $item->html()
+					];
+				}
+			}
+		}
+		return $scripts;
+	}
+
+	protected static function getExtraScript(string $url) {
+		if (($scripts = self::getScriptAssets()) !== null) {
+			$keys = \array_flip(\array_keys($scripts));
+			foreach ($scripts AS $key => $item) {
+				if (\mb_strpos($item['src'], $url) !== false && isset($scripts[$key.'-extra'])) {
+					return [
+						'content' => \mb_substr($scripts[$key.'-extra']['content'], \mb_strpos($scripts[$key.'-extra']['content'], '>') + 1, -9),
+						'type' => $keys[$key] > $keys[$key.'-extra'] ? 'before' : 'after'
+					];
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
