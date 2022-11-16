@@ -189,8 +189,8 @@ class admin extends config {
 							'id' => self::SLUG.'-'.$key
 						]);
 						$attr = '';
-						foreach ($item['attributes'] AS $key => $attribute) {
-							$attr .= ' '.$key.'="'.\esc_html($attribute).'"';
+						foreach ($item['attributes'] AS $name => $attribute) {
+							$attr .= ' '.$name.'="'.\esc_html($attribute).'"';
 						}
 
 						// render the controls
@@ -263,12 +263,14 @@ class admin extends config {
 	 * @return array An array containing arrays of values, each with 'id', 'group', and 'name'
 	 */
 	protected function getDatasource(string $group, string $key) : array {
-		if (isset($this->options[$group]['options'][$key])) {
-			if (empty($this->options[$group]['options'][$key]['values']) && !empty($this->options[$group]['options'][$key]['datasource'])) {
-				$this->options[$group]['options'][$key]['values'] = \call_user_func($this->options[$group]['options'][$key]['datasource']);
+		$options = $this->options;
+		if (isset($options[$group]['options'][$key])) {
+			$item = $options[$group]['options'][$key];
+			if (empty($item['values']) && !empty($item['datasource'])) {
+				$item['values'] = \call_user_func($item['datasource']);
 			}
-			if ($this->options[$group]['options'][$key]['values']) {
-				return $this->options[$group]['options'][$key]['values'];
+			if ($item['values']) {
+				return $item['values'];
 			}
 		}
 		return [];
