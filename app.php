@@ -103,8 +103,12 @@ class app extends config {
 			}
 
 			// set CSP
-			if (isset($options['csp']['setting']) && \in_array($options['csp']['setting'], ['enabled', \strval(\get_current_user_id())])) {
-				\header('Content-Security-Policy: '.$this->getContentSecurityPolicy($options['csp']));
+			if (\in_array($options['csp']['setting'] ?? '', ['enabled', \strval(\get_current_user_id())], true)) {
+				\header('Content-Security-Policy: '.$this->getContentSecurityPolicy($options['csp'], $options['csp']['reporting'] ?? false));
+
+			// reporting only
+			} elseif ($options['csp']['reporting'] ?? false) {
+				\header('Content-Security-Policy-Report-Only: '.$this->getContentSecurityPolicy($options['csp'], true));
 			}
 
 			// HTTP/2.0 preload
@@ -275,13 +279,17 @@ class app extends config {
 			'media' => 'media-src',
 			'object' => 'object-src',
 			'frame' => 'frame-src',
-			'connect' => 'connect-src',
+			'connect' => 'connect-src'
 		];
 		$csp = [];
 		foreach ($fields AS $key => $item) {
 			if (!empty($config[$key])) {
 				$csp[] = $item.' '.\implode(' ', \explode(',', \str_replace(["\r", "\n"], ['', ','], $config[$key])));
 			}
+		}
+		if ($csp) {
+			$base = \parse_url(\get_home_url().'/', PHP_URL_PATH);
+			$csp[] = 'report-uri '.$base.\str_replace('\\', '/', \mb_substr(__DIR__, \mb_strlen(ABSPATH))).'/report.php';
 		}
 		return $csp ? \implode('; ', $csp) : null;
 	}

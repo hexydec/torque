@@ -359,7 +359,7 @@ class config extends packages {
 					'default' => true
 				],
 				'script_numbers' => [
-					'label' => 'Numberds',
+					'label' => 'Numbers',
 					'type' => 'checkbox',
 					'description' => 'Remove underscores from numbers',
 					'default' => true
@@ -443,8 +443,9 @@ class config extends packages {
 			]
 		],
 		'csp' => [
-			'tab' => 'Security',
+			'tab' => 'Policy',
 			'name' => 'Content Security Policy',
+			'desc' => 'Manage your website\'s Content Security Policy',
 			'html' => '<p>Controls what domains your site is allowed to connect and load assets from. Use "\'self\'" for the current domain, "\'unsafe-inline\'" to allow inline scripts or style, and "data:" to allow data URI\'s. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy" target="_blank">See MDN for more options</a>.</p>',
 			'options' => [
 				'csp_setting' => [
@@ -457,60 +458,93 @@ class config extends packages {
 					],
 					'default' => 'disabled'
 				],
+				'csp_reporting' => [
+					'label' => 'Enable Reporting?', // Strict-Transport-Security
+					'description' => 'Enable this if you are not sure what to enter and want recommendations. When your policy is  enabled, use this to see violations',
+					'type' => 'checkbox',
+					'default' => false
+				],
 				'csp_default' => [
 					'label' => 'Default Sources',
 					'description' => 'A list of hosts that serves as a fallback to when there are no specific settings',
 					'type' => 'text',
-					'default' => "'self'"
+					'default' => "'self'",
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				],
 				'csp_style' => [
 					'label' => 'Style Sources',
 					'description' => 'A list of hosts that are allowed to link stylesheets',
 					'type' => 'text',
-					'default' => "'self'\ndata:\n'unsafe-inline'"
+					'default' => "'self'\ndata:\n'unsafe-inline'",
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				],
 				'csp_script' => [
 					'label' => 'Script Sources',
 					'description' => 'A list of hosts that are allowed to link scripts. Note that you will probably need \'unsafe-inline\' as Wordpress embeds Javascripts by default, and your plugins are likely too also (<a href="https://blog.teamtreehouse.com/unobtrusive-javascript-important" target="_blank">Even though they shouldn\'t</a>)',
 					'descriptionhtml' => true,
 					'type' => 'text',
-					'default' => "'self'\n'unsafe-inline'"
+					'default' => "'self'\n'unsafe-inline'",
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				],
 				'csp_image' => [
 					'label' => 'Image Sources',
 					'description' => 'A list of hosts that are allowed to link images',
 					'type' => 'text',
-					'default' => ''
+					'default' => '',
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				],
 				'csp_font' => [
 					'label' => 'Font Sources',
 					'description' => 'Specifies valid sources for fonts loaded using @font-face',
 					'type' => 'text',
-					'default' => ''
+					'default' => '',
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				],
 				'csp_media' => [
 					'label' => 'Media Sources',
 					'description' => 'Specifies valid sources for loading media using the <audio>, <video> and <track> elements',
 					'type' => 'text',
-					'default' => ''
+					'default' => '',
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				],
 				'csp_object' => [
 					'label' => 'Object Sources',
 					'description' => 'Specifies valid sources for the <object>, <embed>, and <applet> elements',
 					'type' => 'text',
-					'default' => ''
+					'default' => '',
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				],
 				'csp_frame' => [
 					'label' => 'Frame Sources',
 					'description' => 'Specifies valid sources for nested browsing contexts',
 					'type' => 'text',
-					'default' => ''
+					'default' => '',
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				],
 				'csp_connect' => [
 					'label' => 'Connect Sources',
 					'description' => 'Restricts the URLs which can be loaded using script interfaces',
 					'type' => 'text',
-					'default' => ''
+					'default' => '',
+					'attributes' => [
+						'class' => 'torque-csp__control'
+					]
 				]
 			]
 		],
@@ -620,10 +654,6 @@ class config extends packages {
 		// callback for saving the combined script
 		$this->options['settings']['options']['combinescript']['onsave'] = function (array $value, array $options) use ($dir) {
 			if ($value) {
-				$files = [];
-				foreach ($value AS $item) {
-					$files[] = $dir.$item;
-				}
 				$target =  __DIR__.'/build/'.\md5(\implode(',', $value)).'.js';
 				if (!assets::buildJavascript($value, $target, $options['minifyscript'] ? ($options['script'] ?? []) : null)) {
 					\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
@@ -637,6 +667,22 @@ class config extends packages {
 			'id' => \get_current_user_id(),
 			'name' => 'Enabled for me only (Testing)'
 		];
+
+		// generate CSP suggestions
+		$this->options['csp']['options']['csp_script']['before'] = '<div class="torque-csp__group">';
+		$this->options['csp']['options']['csp_script']['after'] = function () : ?string {
+			$html = '';
+			if (($data = admin::getCspRecommendations('script-src')) !== null) {
+				$html = '<div class="torque-csp__recommendation">
+					<h4>Recommendations</h4>
+					<ul>';
+				foreach ($data AS $item) {
+					$html .= '<li>'.\esc_html($item).'</li>';
+				}
+				$html .= '</ul></div>';
+			}
+			return $html.'</div>';
+		};
 	}
 
 	/**

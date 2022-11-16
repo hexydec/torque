@@ -104,6 +104,16 @@ class admin extends config {
 
 		// add admin page
 		\add_options_page('Torque - Optimise the transport of your website', 'Torque', 'manage_options', self::SLUG, function () use ($tab) {
+
+			// include styles
+			$css = \str_replace('\\', '/', __DIR__).'/stylesheets/csp.css';
+			\wp_enqueue_style('torque-csp', \get_home_url().\mb_substr($css, \mb_strlen(\get_home_path()) - 1), [], \filemtime($css));
+
+			// include script
+			$js = \str_replace('\\', '/', __DIR__).'/javascript/csp.js';
+			\wp_enqueue_script('torque-csp', \get_home_url().\mb_substr($js, \mb_strlen(\get_home_path()) - 1), [], \filemtime($js));
+
+			// doc root
 			$folder = \str_replace('\\', '/', \mb_substr(__DIR__, \mb_strlen($_SERVER['DOCUMENT_ROOT']))).'/';
 
 			// render headers and tabs ?>
@@ -158,6 +168,11 @@ class admin extends config {
 				foreach ($group['options'] AS $key => $item) {
 					\add_settings_field($key, \esc_html($item['label']), function () use ($g, $key, $item, $options, $allowed) {
 
+						// before HTML
+						if (!empty($item['before'])) {
+							echo $item['before'] instanceof \Closure ? $item['before']($item) : $item['before'];
+						}
+
 						// get the current setting
 						$parts = \explode('_', $key, 2);
 						if (isset($parts[1])) {
@@ -168,13 +183,23 @@ class admin extends config {
 							$value = $item['default'] ?? true;
 						}
 
+						// render attributes
+						$item['attributes'] = \array_merge($item['attributes'] ?? [], [
+							'name' => self::SLUG.'['.$key.']'.($item['type'] === 'multiselect' ? '[]' : ''),
+							'id' => self::SLUG.'-'.$key
+						]);
+						$attr = '';
+						foreach ($item['attributes'] AS $key => $attribute) {
+							$attr .= ' '.$key.'="'.\esc_html($attribute).'"';
+						}
+
 						// render the controls
 						switch ($item['type']) {
 							case 'input':
 							case 'checkbox':
 							case 'number':
 								$checkbox = $item['type'] === 'checkbox'; ?>
-								<input type="<?php echo $item['type']; ?>" id="<?php echo \esc_html(self::SLUG.'-'.$key); ?>" name="<?php echo \esc_html(self::SLUG.'['.$key.']'); ?>" value="<?php echo $checkbox ? '1' : \esc_html($value); ?>"<?php echo $checkbox && $value ? ' checked="checked"' : ''; ?> />
+								<input type="<?php echo $item['type']; ?>"<?php echo $attr; ?> value="<?php echo $checkbox ? '1' : \esc_html($value); ?>"<?php echo $checkbox && $value ? ' checked="checked"' : ''; ?> />
 								<?php
 								if ($checkbox && !empty($item['description'])) { ?>
 									<label for="<?php echo \esc_html(self::SLUG.'-'.$key); ?>"><?php echo \esc_html($item['description']); ?></label>
@@ -184,7 +209,7 @@ class admin extends config {
 								break;
 							case 'text':
 								?>
-								<textarea id="<?php echo \esc_html(self::SLUG.'-'.$key); ?>" name="<?php echo \esc_html(self::SLUG.'['.$key.']'); ?>" rows="5" cols="30"><?php echo \esc_html($value); ?></textarea>
+								<textarea<?php echo $attr; ?> rows="5" cols="30"><?php echo \esc_html($value); ?></textarea>
 								<?php
 								break;
 							case 'multiselect':
@@ -196,7 +221,7 @@ class admin extends config {
 									$item['values'] = $this->getDatasource($g, $key);
 								}
 								$group = null; ?>
-								<select name="<?php echo \esc_html(self::SLUG.'['.$key.']'.($item['type'] === 'multiselect' ? '[]' : '')); ?>"<?php echo $item['type'] === 'multiselect' ? ' multiple="multiple" style="height:200px;width:95%;max-width:600px"' : ''; ?>>
+								<select<?php echo $attr; ?><?php echo $item['type'] === 'multiselect' ? ' multiple="multiple" style="height:200px;width:95%;max-width:600px"' : ''; ?>>
 									<?php foreach ($item['values'] AS $option) {
 										if (($option['group'] ?? null) !== $group) {
 											if ($group) {
@@ -213,6 +238,11 @@ class admin extends config {
 								</select>
 								<?php
 								break;
+						}
+
+						// description
+						if (!empty($item['after'])) {
+							echo $item['after'] instanceof \Closure ? $item['after']($item) : $item['after'];
 						}
 
 						// description
@@ -242,5 +272,60 @@ class admin extends config {
 			}
 		}
 		return [];
+	}
+
+	public static function getCsp(?string $key = null) : ?array {
+		static $csp = [];
+		$file = __DIR__.'/csp/reports.json';
+		if (!$csp && ($data = \file_get_contents($file)) !== false) {
+			foreach (\explode("\n", $data) AS $item) {
+				if (($item = \json_decode($item, true)) !== null && !empty($item['csp-report'])) {
+					$rep = $item['csp-report'];
+					if (isset($rep['violated-directive'], $rep['blocked-uri'])) {
+						if (!isset($csp[$rep['violated-directive']])) {
+							$csp[$rep['violated-directive']] = [];
+						}
+						if (!\in_array($rep['blocked-uri'], $csp[$rep['violated-directive']], true)) {
+							$csp[$rep['violated-directive']][] = $rep['blocked-uri'];
+						}
+					}
+				}
+			}
+		}
+		return $key ? $csp[$key] ?? null : $csp;
+	}
+
+	public static function getCspRecommendations(string $key) {
+		if (($data = self::getCsp($key)) !== null) {
+			$recs = [];
+			foreach ($data AS $href) {
+				$found = false;
+
+				// compare the urls letter by letter
+				$find = \mb_str_split($href);
+				foreach ($recs AS $r => $item) {
+					$match = \mb_str_split($item);
+					foreach ($find AS $i => $f) {
+
+						// when the letters do not match
+						if ($f !== ($match[$i] ?? null)) {
+
+							// match more than https://
+							if ($i > 7) {
+								unset($recs[$r]); // remove current value
+								$recs[] = \mb_strrchr(\mb_substr($item, 0, $i), '/', true).'/'; // store matched value
+								$found = true;
+							}
+							break;
+						}
+					}
+				}
+				if (!$found) {
+					$recs[] = $href;
+				}
+			}
+			return $recs;
+		}
+		return null;
 	}
 }
