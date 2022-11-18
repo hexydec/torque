@@ -116,7 +116,7 @@ class app extends config {
 
 				// add combined stylesheet
 				if ($options['preloadstyle'] && $options['combinestyle']) {
-					$file = __DIR__.'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
+					$file = $this->config['output'].\md5(\implode(',', $options['combinestyle'])).'.css';
 					$root = \dirname(\dirname(\dirname(__DIR__))).'/';
 					$options['preload'][] = \str_replace('\\', '/', \mb_substr($file, \mb_strlen($root)).'?'.\filemtime($file));
 				}
@@ -163,30 +163,34 @@ class app extends config {
 
 						// combine style
 						if (!empty($options['combinestyle'])) {
-							foreach ($options['combinestyle'] AS $item) {
-								$doc->remove('link[rel=stylesheet][href*="'.$item.'"]');
+							$file = $this->config['output'].\md5(\implode(',', $options['combinestyle'])).'.css';
+							if (\file_exists($file)) {
+								foreach ($options['combinestyle'] AS $item) {
+									$doc->remove('link[rel=stylesheet][href*="'.$item.'"]');
+								}
+								$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
+								$doc->find('head')->append('<link rel="stylesheet" href="'.\esc_html($url).'" />');
 							}
-							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinestyle'])).'.css';
-							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$doc->find('head')->append('<link rel="stylesheet" href="'.\esc_html($url).'" />');
 						}
 
 						// combine style
 						if (!empty($options['combinescript'])) {
+							$file = $this->config['output'].\md5(\implode(',', $options['combinescript'])).'.js';
+							if (\file_exists($file)) {
 
-							// remove scripts we are combining
-							foreach ($options['combinescript'] AS $item) {
-								$script = $doc->find('script[src*="'.$item.'"]');
-								if (($id = $script->attr("id")) !== null) {
-									$doc->find('script[id="'.$id.'-extra"]')->remove();
+								// remove scripts we are combining
+								foreach ($options['combinescript'] AS $item) {
+									$script = $doc->find('script[src*="'.$item.'"]');
+									if (($id = $script->attr("id")) !== null) {
+										$doc->find('script[id="'.$id.'-extra"]')->remove();
+									}
+									$script->remove();
 								}
-								$script->remove();
-							}
 
-							// append the combined file to the body tag
-							$file = \str_replace('\\', '/', __DIR__).'/build/'.\md5(\implode(',', $options['combinescript'])).'.js';
-							$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
-							$doc->find('body')->append('<script src="'.\esc_html($url).'"></script>');
+								// append the combined file to the body tag
+								$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
+								$doc->find('body')->append('<script src="'.\esc_html($url).'"></script>');
+							}
 						}
 
 						// build the minification options

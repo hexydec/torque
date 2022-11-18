@@ -17,7 +17,7 @@ class admin extends config {
 
 		// get the current tab
 		$tabs = $this->getTabs(); // allowed tabs
-		$value = $_POST['tab'] ?? ($_GET['tab'] ?? null); // current user value - can be GET or POST
+		$value = $_POST['tab'] ?? $_GET['tab'] ?? null; // current user value - can be GET or POST
 		$tab = \in_array($value, $tabs, true) ? $value : $tabs[0]; // check tab against list or use first tab
 		return $tab;
 	}
@@ -51,7 +51,7 @@ class admin extends config {
 									$options[$key] = empty($value[$key]) ? false : ($item['value'] ?? true);
 									break;
 								case 'number':
-									if (isset($value[$key]) && \is_numeric($value[$key]) && $value[$key] >= 0) {
+									if (\is_numeric($value[$key] ?? null) && $value[$key] >= 0) {
 										$options[$key] = $value[$key];
 									} else {
 										\add_settings_error(self::SLUG, self::SLUG, 'The value entered for '.$item['label'].' is invalid');
@@ -69,7 +69,10 @@ class admin extends config {
 										$item['values'] = $this->getDatasource($i, $key);
 									}
 									$ids = \array_column($item['values'], 'id');
-									$options[$key] = isset($value[$key]) && \is_array($value[$key]) ? \array_intersect($value[$key], $ids) : [];
+									$options[$key] = \is_array($value[$key] ?? null) ? \array_intersect($value[$key], $ids) : [];
+									break;
+								case 'list':
+									$options[$key] = \is_array($value[$key] ?? null) ? \implode("\n", \array_filter($value[$key])) : '';
 									break;
 							}
 						}
@@ -212,6 +215,21 @@ class admin extends config {
 								<textarea<?php echo $attr; ?> rows="5" cols="30"><?php echo \esc_html($value); ?></textarea>
 								<?php
 								break;
+							case 'list':
+								$values = $value ? explode("\n", \str_replace("\r", "", $value)) : [''];
+								$delete = \count($values) > 1;
+								?><ul class="torque-csp__list">
+									<?php foreach ($values AS $i => $val) { ?>
+										<li class="torque-csp__list-item">
+											<button class="torque-csp__add dashicons dashicons-insert" title="Add item to list">Add</button>
+											<input name="<?php echo \esc_html($item['attributes']['name']); ?>[]" class="torque-csp__value" value="<?php echo \esc_html($val	); ?>" />
+											<?php if ($delete) { ?>
+												<button class="torque-csp__delete dashicons dashicons-remove" title="Remove item from list">Delete</button>
+											<?php } ?>
+										</li>
+									<?php } ?>
+								</ul><?php
+								break;
 							case 'multiselect':
 							case 'select':
 								if (!\is_array($value)) {
@@ -274,60 +292,5 @@ class admin extends config {
 			}
 		}
 		return [];
-	}
-
-	public static function getCsp(?string $key = null) : ?array {
-		static $csp = [];
-		$file = __DIR__.'/csp/reports.json';
-		if (!$csp && ($data = \file_get_contents($file)) !== false) {
-			foreach (\explode("\n", $data) AS $item) {
-				if (($item = \json_decode($item, true)) !== null && !empty($item['csp-report'])) {
-					$rep = $item['csp-report'];
-					if (isset($rep['violated-directive'], $rep['blocked-uri'])) {
-						if (!isset($csp[$rep['violated-directive']])) {
-							$csp[$rep['violated-directive']] = [];
-						}
-						if (!\in_array($rep['blocked-uri'], $csp[$rep['violated-directive']], true)) {
-							$csp[$rep['violated-directive']][] = $rep['blocked-uri'];
-						}
-					}
-				}
-			}
-		}
-		return $key ? $csp[$key] ?? null : $csp;
-	}
-
-	public static function getCspRecommendations(string $key) {
-		if (($data = self::getCsp($key)) !== null) {
-			$recs = [];
-			foreach ($data AS $href) {
-				$found = false;
-
-				// compare the urls letter by letter
-				$find = \mb_str_split($href);
-				foreach ($recs AS $r => $item) {
-					$match = \mb_str_split($item);
-					foreach ($find AS $i => $f) {
-
-						// when the letters do not match
-						if ($f !== ($match[$i] ?? null)) {
-
-							// match more than https://
-							if ($i > 7) {
-								unset($recs[$r]); // remove current value
-								$recs[] = \mb_strrchr(\mb_substr($item, 0, $i), '/', true).'/'; // store matched value
-								$found = true;
-							}
-							break;
-						}
-					}
-				}
-				if (!$found) {
-					$recs[] = $href;
-				}
-			}
-			return $recs;
-		}
-		return null;
 	}
 }

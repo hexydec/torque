@@ -232,16 +232,18 @@ class assets {
 	/**
 	 * Builds the requested CSS files into a single compressed file
 	 *
-	 * @param array $files An array of absolute file address to combine
+	 * @param array $files An array of relative file address to combine
 	 * @param string $target The absolute file address of the target document
 	 * @param array $minify Minification option array or null to not minify at all
 	 * @return bool Whether the output file was created
 	 */
 	public static function buildCss(array $files, string $target, ?array $minify = null) : bool {
+		$css = '';
 
 		// get the CSS documents and rewrite the URL's
-		$css = '';
+		$dir = \dirname(\dirname(\dirname(__DIR__))).'/'; // can't use get_home_path() here
 		foreach ($files AS $item) {
+			$item = $dir.$item;
 			if (\file_exists($item) && ($file = \file_get_contents($item)) !== false) {
 				$css .= \preg_replace_callback('/url\\([\'"]?+([^\\)"\':]++)[\'"]?\\)/i', function (array $match) use ($item) {
 					\chdir(\dirname($item));
@@ -280,7 +282,7 @@ class assets {
 	/**
 	 * Builds the requested Javascript files into a single compressed file
 	 *
-	 * @param array $files An array of absolute file address to combine
+	 * @param array $files An array of relative file address to combine
 	 * @param string $target The absolute file address of the target document
 	 * @param array $minify Minification option array or null to not minify at all
 	 * @return bool Whether the output file was created

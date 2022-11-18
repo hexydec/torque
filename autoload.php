@@ -10,6 +10,7 @@
 		$namespace.'packages' => __DIR__.'/packages.php',
 		$namespace.'config' => __DIR__.'/config.php',
 		$namespace.'admin' => __DIR__.'/admin.php',
+		$namespace.'csp' => __DIR__.'/csp.php',
 		$namespace.'assets' => __DIR__.'/assets.php',
 		$namespace.'app' => __DIR__.'/app.php',
 		$namespace.'installExternal' => __DIR__.'/install-external.php',

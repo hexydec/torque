@@ -1,6 +1,6 @@
 <?php
-$dir = __DIR__.'/csp/';
-$file = $dir.'reports.json';
+$dir = \dirname(\dirname(__DIR__)).'/uploads/torque/';
+$file = $dir.'csp-reports.json';
 
 // we have collected enough data
 if (\filesize($file) > 1000000) {
@@ -17,8 +17,8 @@ if (\filesize($file) > 1000000) {
 // read the report
 } else {
 	if (!\is_dir($dir)) {
-		\mkdir($dir);
+		\mkdir($dir, 0755, true);
 	}
 	\file_put_contents($file, $report."\n", FILE_APPEND | LOCK_EX);
 	\http_response_code(204);
-}
+};

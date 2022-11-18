@@ -2,6 +2,66 @@
 	display: flex;
 }
 
-.torque-csp__recommendation {
-	margin-left: 15px;
+.torque-csp__recommendations-heading {
+	margin-bottom: 5px;
+}
+
+.torque-csp__recommendations-list {
+	margin: 0 0 15px 0;
+}
+
+.torque-csp__recommendations-add {
+	cursor: pointer;
+}
+
+.torque-csp__recommendations-icon {
+	margin-right: 5px;
+	text-decoration: none;
+	color: #3c434a;
+}
+
+.torque-csp__recommendations-add:hover > .torque-csp__recommendations-icon {
+	color: #72aee6;
+}
+
+.torque-csp__list {
+	margin: 0;
+	list-style: none;
+	padding: 0;
+}
+
+.torque-csp__list-item {
+	display: flex;
+	align-items: center;
+}
+
+.torque-csp__add, .torque-csp__delete {
+	border: none;
+	background: none;
+	padding: 0;
+	width: 20px;
+	height: 20px;
+	margin-right: 5px;
+	overflow: hidden;
+	cursor: pointer;
+}
+
+.torque-csp__add::before, .torque-csp__delete::before {
+	transition: all 0.3s;
+}
+
+.torque-csp__add:hover::before {
+	color: #72aee6;
+}
+
+.torque-csp__delete:hover::before {
+	color: #d63638;
+}
+
+.torque-csp__delete {
+	margin-left: 5px;
+}
+
+.torque-csp__value {
+	width: 250px;
 }
