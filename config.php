@@ -512,7 +512,8 @@ class config extends packages {
 				'tab' => 'Policy',
 				'name' => 'Content Security Policy',
 				'desc' => 'Manage your website\'s Content Security Policy',
-				'html' => '<p>Controls what domains your site is allowed to connect and load assets from. Use "\'self\'" for the current domain, "\'unsafe-inline\'" to allow inline scripts or style, and "data:" to allow data URI\'s. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy" target="_blank">See MDN for more options</a>.</p>',
+				'html' => '<p>Controls what domains your site is allowed to connect and load assets from. Use "\'self\'" for the current domain, "\'unsafe-inline\'" to allow inline scripts or style, and "data:" to allow data URI\'s. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy" target="_blank">See MDN for more options</a>.</p>
+				<p class="torque-csp__warning">Note: The recommendation engine only makes suggestions based on violation reports, make sure you know what assets generated the report before adding it to your policy.</p>',
 				'options' => [
 					'csp_setting' => [
 						'label' => 'Status',
