@@ -63,7 +63,8 @@ It is recommended that you do not use this plugin with other minification plugin
 4. The CSS tab enables you to specify your CSS minification settings
 5. The Javascript tab enables you to specify your Javascript minification settings
 6. The Caching screen gives you some browser cache and shared cache settings
-7. The Security screen enables you to set some security headers and specify a Content-Security-Policy
+7. The Security screen enables you to set some security headers
+7. The Policy screen enables you to specify a Content-Security-Policy
 8. The Preload screen lets you select which assets will be preloaded
 
 == Frequently Asked Questions ==
@@ -132,7 +133,7 @@ Preload works by notifies the browser as soon as possible of assets it will need
 * More Javascript minification options
 * Improved overview metrics
 * Console stats now only show for the admin who set the setting
-* Removed support for HTTP/2.0 Push, only preload is now suppoorted
+* Removed support for HTTP/2.0 Push, as it is deprecated with HTTP/3.0, only preload is now suppoorted
 * Lots of bug fixes
 * Syntax improvements
 
