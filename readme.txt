@@ -134,6 +134,7 @@ Preload works by notifies the browser as soon as possible of assets it will need
 * Improved overview metrics
 * Console stats now only show for the admin who set the setting
 * Removed support for HTTP/2.0 Push, as it is deprecated with HTTP/3.0, only preload is now suppoorted
+* Reworked Content Security Policy manager to gather violations and recommend settings
 * Lots of bug fixes
 * Syntax improvements
 
