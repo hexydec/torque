@@ -9,6 +9,28 @@ namespace hexydec\torque;
 class admin extends config {
 
 	/**
+	 * @var $template Stores the name of the cirrently compiling template, see self::compile()
+	 */
+	protected static $template;
+
+	/**
+	 * A function to compile an array into a template
+	 * 
+	 * @param array $content An array of items to compile
+	 * @param string $template The absolute path of the template to compile
+	 * @return string The compiled template
+	 */
+	public static function compile(array $content, string $template) : string {
+		self::$template = $template;
+		\extract($content);
+		\ob_start();
+		require self::$template;
+		$html = \ob_get_contents();
+		\ob_end_clean();
+		return $html;
+	}
+
+	/**
 	 * Retrieves the currently selected tab from the querystring or POST data, or the first avaialble tab
 	 *
 	 * @return string The code name of the current tab

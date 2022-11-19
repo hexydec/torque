@@ -70,19 +70,31 @@ class csp {
 					foreach ($recs AS $r => $item) {
 						$last = null;
 						$pos = 7;
-						while (($pos = \strpos($value, '/', $pos + 1)) !== false || ($pos = \strlen($value)) < ($last ?? 0)) {
-							if (\strncmp($item, $value, $pos) === 0) {
+
+						// compare one more folder each time
+						while (($pos = \strpos($value, '/', $pos + 1)) !== false) {
+
+							// match
+							if (\strncmp($item, $value, $pos + 1) === 0) {
 								$last = $pos;
+
+							// matched previous
 							} elseif ($last) {
-								$recs[$r] = \substr($value, 0, $pos);
-								$found = true;
-								break 2;
+								break;
 							}
 						}
+
+						// overwrite found item with last match as may now be shorter
+						if ($last) {
+							$recs[$r] = \substr($value, 0, $last + 1);
+							$found = true;
+							break;
+						}
 					}
+
+					// new item that doesn't match any previous items
 					if (!$found) {
-						$recs[] = $value;
-						break;
+						$recs[] = $href;
 					}
 
 				// add keyword

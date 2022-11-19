@@ -1,9 +1,39 @@
-.torque-csp__group {
+.torque-csp__collapse-switch {
+	display: none !important;
+}
+
+.torque-csp__collapse-content {
+	overflow: hidden;
+	max-height: 0;
+	transition: all 1s;
+}
+
+.torque-csp__collapse-switch:checked ~ .torque-csp__collapse-content {
+	max-height: 1000px;
+}
+
+.torque-csp__heading {
+	margin: 5px 0;
+}
+
+.torque-csp__heading-label {
 	display: flex;
 }
 
-.torque-csp__recommendations-heading {
-	margin-bottom: 5px;
+.torque-csp__heading-icon {
+	margin-right: 5px;
+}
+
+.torque-csp__heading-icon.dashicons-minus {
+	display: none;
+}
+
+.torque-csp__collapse-switch:checked + .torque-csp__heading .torque-csp__heading-icon.dashicons-minus {
+	display: block;
+}
+
+.torque-csp__collapse-switch:checked + .torque-csp__heading .torque-csp__heading-icon.dashicons-plus-alt2 {
+	display: none;
 }
 
 .torque-csp__recommendations-list {
@@ -64,4 +94,25 @@
 
 .torque-csp__value {
 	width: 250px;
+}
+
+.torque-csp__log-table {
+	border: 1px solid #c3c4c7;
+	border-collapse: collapse;
+	background: #FFF;
+}
+
+.torque-csp__log-header {
+	padding: 5px !important;
+	width: auto !important;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.torque-csp__log-item {
+	padding: 5px !important;
+	width: auto !important;
+}
+
+.torque-csp__log-item--pages {
+	white-space: nowrap;
 }

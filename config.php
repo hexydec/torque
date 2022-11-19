@@ -624,7 +624,8 @@ class config extends packages {
 								return \file_put_contents($report, '') !== false;
 							}
 							return false;
-						}
+						},
+						'save' => false
 					]
 				]
 			],
@@ -682,49 +683,12 @@ class config extends packages {
 		$report = $this->config['output'].$this->config['csplog'];
 		foreach ($fields AS $key => $item) {
 			$this->options['csp']['options'][$key]['after'] = function () use ($item, $report) : ?string {
-				$html = '';
-				if (($data = csp::recommendations($report, $item)) !== null) {
-					$html = '<div class="torque-csp__recommendations">
-						<h4 class="torque-csp__recommendations-heading">Recommendations</h4>
-						<ul class="torque-csp__recommendations-list">';
-					foreach ($data AS $row) {
-						$html .= '<li class="torque-csp__recommendations-item" title="Add recommendation to Content Security Policy">
-							<a href="#" class="torque-csp__recommendations-add">
-								<span class="torque-csp__recommendations-icon dashicons dashicons-insert"></span>'.
-								\esc_html($row).'
-							</a>
-						</li>';
-					}
-					$html .= '</ul></div>';
-				}
-				if (($data = csp::violations($report, $item)) !== null) {
-					$len = 50;
-					$html .= '<table class="wp-list-table widefat fixed striped table-view-list" cellspacing="8">
-						<thead>
-							<tr>
-								<th class="manage-column column-columnname">Blocked URI</th>
-								<th class="manage-column column-columnname">Pages</th>
-							</tr>
-						</thead>
-						<tbody>';
-					foreach ($data AS $blocked => $urls) {
-						$html .= '<tr class="alternate">
-							<td class="column-columnname">
-								'.(\mb_stripos($blocked, '://') === false ? '' : '<a href="'.\esc_attr($blocked).'" target="_blank">').
-									\esc_html(\mb_strlen($blocked) > $len ? \mb_substr($blocked, 0, $len).'...' : $blocked).
-								(\mb_stripos($blocked, '://') === false ? '' : '</a>').'
-							</td>
-							<td class="column-columnname">';
-						foreach ($urls AS $url) {
-							$html .= '<a href="'.\esc_attr($url).'" class="dashicons dashicons-admin-page"></a>';
-						}
-						$html .= '</td>
-							</tr>';
-					}
-					$html .= '</tbody>
-						</table>';
-				}
-				return $html;
+				$content = [
+					'type' => $item,
+					'recommendations' => csp::recommendations($report, $item),
+					'violations' => csp::violations($report, $item)
+				];
+				return admin::compile($content, __DIR__.'/templates/csp-recommendations.php');
 			};
 		}
 	}
@@ -740,33 +704,35 @@ class config extends packages {
 			$current = [];
 		}
 		$config = [];
-		foreach ($this->options AS $i => $option) {
+		foreach ($this->options AS $option) {
 			foreach ($option['options'] AS $key => $item) {
+				if ($item['save'] ?? true) {
 
-				// build the options in the format HTMLdoc expects
-				$parts = \explode('_', $key, 2);
+					// build the options in the format HTMLdoc expects
+					$parts = \explode('_', $key, 2);
 
-				// root level
-				if (!isset($parts[1])) {
-					if (isset($values[$key])) {
-						$config[$parts[0]] = $values[$key];
-					} elseif (isset($current[$parts[0]])) {
-						$config[$parts[0]] = $current[$parts[0]];
+					// root level
+					if (!isset($parts[1])) {
+						if (isset($values[$key])) {
+							$config[$parts[0]] = $values[$key];
+						} elseif (isset($current[$parts[0]])) {
+							$config[$parts[0]] = $current[$parts[0]];
+						} else {
+							$config[$parts[0]] = $item['default'] ?? null;
+						}
+
+					// sub levels
 					} else {
-						$config[$parts[0]] = $item['default'] ?? null;
-					}
-
-				// sub levels
-				} else {
-					if (!isset($config[$parts[0]]) || !\is_array($config[$parts[0]])) {
-						$config[$parts[0]] = [];
-					}
-					if (isset($values[$key])) {
-						$config[$parts[0]][$parts[1]] = $values[$key];
-					} elseif (isset($current[$parts[0]][$parts[1]])) {
-						$config[$parts[0]][$parts[1]] = $current[$parts[0]][$parts[1]];
-					} else {
-						$config[$parts[0]][$parts[1]] = $item['default'] ?? null;
+						if (!isset($config[$parts[0]]) || !\is_array($config[$parts[0]])) {
+							$config[$parts[0]] = [];
+						}
+						if (isset($values[$key])) {
+							$config[$parts[0]][$parts[1]] = $values[$key];
+						} elseif (isset($current[$parts[0]][$parts[1]])) {
+							$config[$parts[0]][$parts[1]] = $current[$parts[0]][$parts[1]];
+						} else {
+							$config[$parts[0]][$parts[1]] = $item['default'] ?? null;
+						}
 					}
 				}
 			}
