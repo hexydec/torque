@@ -4,7 +4,7 @@ Tags: minify,minification,performance,security,optimization
 Requires at least: 5.9
 Tested up to: 6.1
 Requires PHP: 7.4
-Stable tag: 0.6.5
+Stable tag: 0.7.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -126,6 +126,10 @@ When you are happy that all domains and settings are set correctly, you can enab
 Preload works by notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page. For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.
 
 == Changelog ==
+
+= Version 0.7.1 =
+
+* Updated JSlite to fix javascript parsing issue
 
 = Version 0.7.0 =
 
