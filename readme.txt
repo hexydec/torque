@@ -45,6 +45,7 @@ The plugin also includes a suite of security features to help you secure your we
 	* Select which assets to preload with first load
 	* Preload combined stylesheets
 * Administration panel to control all features, including all minification optimisations
+* Print minification stats in the console
 
 See the [Torque Github homepage](https://github.com/hexydec/torque) for more information.
 
@@ -123,13 +124,11 @@ When you are happy that all domains and settings are set correctly, you can enab
 
 = How does preload work? =
 
-Preload works by notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page. For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.
+Preload works by notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page.
+
+For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.
 
 == Changelog ==
-
-= Version 0.7.1 =
-
-* Updated JSlite to fix javascript parsing issue
 
 = Version 0.7.0 =
 
@@ -137,7 +136,7 @@ Preload works by notifies the browser as soon as possible of assets it will need
 * More Javascript minification options
 * Improved overview metrics
 * Console stats now only show for the admin who set the setting
-* Removed support for HTTP/2.0 Push, as it is deprecated with HTTP/3.0, only preload is now suppoorted
+* Removed support for HTTP/2.0 Push, as it is deprecated with HTTP/3.0, only preload is now supported
 * Reworked Content Security Policy manager to gather violations and recommend settings
 * Lots of bug fixes
 * Syntax improvements
