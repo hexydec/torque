@@ -56,7 +56,9 @@ require(__DIR__.'/autoload.php');
 
 // add rebuild command
 if (\class_exists('WP_CLI')) {
-	\WP_CLI::add_command('torque rebuild', '\\hexydec\\torque\\packages::rebuildAssets', [
+	\WP_CLI::add_command('torque rebuild', function () {
+		return \hexydec\torque\assets::rebuildAssets();
+	}, [
 		'shortdesc' => 'Rebuild the configured combined CSS and Javascript files'
 	]);
 }

@@ -117,8 +117,10 @@ class app extends config {
 				// add combined stylesheet
 				if ($options['preloadstyle'] && $options['combinestyle']) {
 					$file = $this->config['output'].\md5(\implode(',', $options['combinestyle'])).'.css';
-					$root = \dirname(\dirname(\dirname(__DIR__))).'/';
-					$options['preload'][] = \str_replace('\\', '/', \mb_substr($file, \mb_strlen($root)).'?'.\filemtime($file));
+					if (\file_exists($file)) {
+						$root = \dirname(\dirname(\dirname(__DIR__))).'/';
+						$options['preload'][] = \str_replace('\\', '/', \mb_substr($file, \mb_strlen($root)).'?'.\filemtime($file));
+					}
 				}
 
 				// set header
@@ -224,7 +226,7 @@ class app extends config {
 
 					// check etags
 					if (($options['etags'] ?? null) !== null && empty($_POST) && $this->matchesEtag($html)) {
-						\http_response_code(304);
+						\status_header(304);
 						return '';
 					}
 
