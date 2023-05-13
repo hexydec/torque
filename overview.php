@@ -388,7 +388,7 @@ class overview extends assets {
 							if (!empty($data['link']) && ($assets = $this->getLinkAssets($data['link'], 'preload')) !== null) {
 								$html .= '<p>The following assets are being preloaded:</p><ul>';
 								foreach ($assets AS $item) {
-									$html .= '<li>'.esc_html($item['url']).'</li>';
+									$html .= '<li>'.\esc_html($item['url']).'</li>';
 								}
 								$html .= '</ul>';
 							}
@@ -415,7 +415,7 @@ class overview extends assets {
 					[
 						'title' => 'Prevent MIME Type Sniffing',
 						'badge' => function (array $data, bool &$status = null) : string {
-							$status = $data['x-content-type-options'] === 'nosniff';
+							$status = ($data['x-content-type-options'] ?? '') === 'nosniff';
 							return $status ? 'Enabled' : 'Not Enabled';
 						},
 						'html' => '<p>When a client requests a file such as an image, your server normally also sends a MIME (Multipurpose Internet Mail Extensions) type. This is a string that tells the client what sort of file was sent (e.g. a JPEG image is <code>image/jpeg</code>) so that the browser handles it in the correct way.</p>
