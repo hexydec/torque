@@ -4,7 +4,7 @@ Tags: minify,minification,performance,security,optimization
 Requires at least: 
 Tested up to: 6.2
 Requires PHP: 8.0
-Stable tag: 0.7.1
+Stable tag: 0.7.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -132,6 +132,7 @@ Preload works by notifies the browser as soon as possible of assets it will need
 
 * Fixed issue when combining CSS where any inline CSS attached to an external stylesheet was not combined, sometimes causing ordering issues
 * Updated packages to latest versions
+* Fixed bug where 304 headers were not set the Wordpress way, which caused Wordpress to overwrite it
 * Fixed incorrectly loaded rebuild command
 * Fixed minor PHP 8.1 data handling issues
 
