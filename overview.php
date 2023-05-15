@@ -388,7 +388,7 @@ class overview extends assets {
 							if (!empty($data['link']) && ($assets = $this->getLinkAssets($data['link'], 'preload')) !== null) {
 								$html .= '<p>The following assets are being preloaded:</p><ul>';
 								foreach ($assets AS $item) {
-									$html .= '<li>'.\esc_html($item['url']).'</li>';
+									$html .= '<li>'.esc_html($item['url']).'</li>';
 								}
 								$html .= '</ul>';
 							}
@@ -490,7 +490,7 @@ class overview extends assets {
 	protected function getLinkAssets(string $link, ?string $type = null) : ?array {
 		$assets = [];
 		if (!empty($link)) {
-			foreach (\explode(',', $link) AS $item) {
+			foreach (\explode(',', \trim($link, ',; ')) AS $item) {
 				$props = [];
 				foreach (\explode(';', $item) AS $value) {
 					$value = \trim($value);

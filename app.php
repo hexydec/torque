@@ -168,7 +168,12 @@ class app extends config {
 							$file = $this->config['output'].\md5(\implode(',', $options['combinestyle'])).'.css';
 							if (\file_exists($file)) {
 								foreach ($options['combinestyle'] AS $item) {
-									$doc->remove('link[rel=stylesheet][href*="'.$item.'"]');
+									$style = $doc->find('link[rel=stylesheet][href*="'.$item.'"]');
+									if (($id = $style->attr("id")) !== null) {
+										$inline = \substr($id, 0, -3).'inline-css';
+										$doc->find('style[id="'.$inline.'"]')->remove();
+									}
+									$style->remove();
 								}
 								$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
 								$doc->find('head')->append('<link rel="stylesheet" href="'.\esc_html($url).'" />');

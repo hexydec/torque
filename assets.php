@@ -243,13 +243,25 @@ class assets {
 		// get the CSS documents and rewrite the URL's
 		$dir = \dirname(\dirname(\dirname(__DIR__))).'/'; // can't use get_home_path() here
 		foreach ($files AS $item) {
-			$item = $dir.$item;
-			if (\file_exists($item) && ($file = \file_get_contents($item)) !== false) {
-				$css .= \preg_replace_callback('/url\\([\'"]?+([^\\)"\':]++)[\'"]?\\)/i', function (array $match) use ($item) {
-					\chdir(\dirname($item));
+			$url = $dir.$item;
+			if (\file_exists($url) && ($file = \file_get_contents($url)) !== false) {
+
+				// add before styles
+				if (($styles = self::getInlineStyles($item)) !== null && $styles['type'] === 'before') {
+					$css .= $styles['content'];
+				}
+
+				// extract and rework asset URLs
+				$css .= \preg_replace_callback('/url\\([\'"]?+([^\\)"\':]++)[\'"]?\\)/i', function (array $match) use ($url) : string {
+					\chdir(\dirname($url));
 					$path = \realpath(\dirname($match[1])).'/'.\basename($match[1]);
 					return 'url('.\str_replace('\\', '/', \substr($path, \strlen($_SERVER['DOCUMENT_ROOT']))).')';
 				}, $file);
+
+				// add after styles
+				if (($styles['type'] ?? '') === 'after') {
+					$css .= $styles['content'];
+				}
 			}
 		}
 
@@ -277,6 +289,40 @@ class assets {
 			}
 		}
 		return false;
+	}
+
+	protected static function getStyleAssets() {
+		static $style = null;
+		if ($style === null) {
+			$doc = new \hexydec\html\htmldoc();
+			$url = \home_url().'/?notorque';
+			if (($html = self::getPage($url)) !== false && $doc->load($html)) {
+				$style = [];
+				foreach ($doc->find('link[rel=stylesheet][id],style[id]') AS $item) {
+					$style[$item->attr('id')] = [
+						'href' => $item->attr('href'),
+						'content' => $item->html()
+					];
+				}
+			}
+		}
+		return $style;
+	}
+
+	protected static function getInlineStyles(string $url) : array|null {
+		if (($style = self::getStyleAssets()) !== null) {
+			$keys = \array_flip(\array_keys($style));
+			foreach ($style AS $key => $item) {
+				$inline = \substr($key, 0, -3).'inline-css';
+				if (\mb_strpos($item['href'] ?? '', $url) !== false && isset($style[$inline])) {
+					return [
+						'content' => \mb_substr($style[$inline]['content'], \mb_strpos($style[$inline]['content'], '>') + 1, -9),
+						'type' => $keys[$key] > $keys[$inline] ? 'before' : 'after'
+					];
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -354,11 +400,11 @@ class assets {
 		return $scripts;
 	}
 
-	protected static function getExtraScript(string $url) {
+	protected static function getExtraScript(string $url) : array|null {
 		if (($scripts = self::getScriptAssets()) !== null) {
 			$keys = \array_flip(\array_keys($scripts));
 			foreach ($scripts AS $key => $item) {
-				if (\mb_strpos($item['src'], $url) !== false && isset($scripts[$key.'-extra'])) {
+				if (\mb_strpos($item['src'] ?? '', $url) !== false && isset($scripts[$key.'-extra'])) {
 					return [
 						'content' => \mb_substr($scripts[$key.'-extra']['content'], \mb_strpos($scripts[$key.'-extra']['content'], '>') + 1, -9),
 						'type' => $keys[$key] > $keys[$key.'-extra'] ? 'before' : 'after'
