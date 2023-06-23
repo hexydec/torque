@@ -35,7 +35,8 @@ class assets {
 			$context = \stream_context_create([
 				'http' => [
 					'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0 ('.PHP_OS.') hexydec\\torque '.packages::VERSION, // use browser agent if set
-					'header' => $headers
+					'header' => $headers,
+					'verify_peer_name' => \in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1']) // enables self-signed SSL on localhost
 				]
 			]);
 
