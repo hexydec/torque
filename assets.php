@@ -112,9 +112,10 @@ class assets {
 
 				// remove any query string
 				$prefix = $url;
-				if (($temp = \strstr($prefix, '?', true)) !== false) {
+				if (($temp = \mb_strstr($prefix, '?', true)) !== false) {
 					$prefix = $temp;
 				}
+				$noscheme = \mb_strstr($url, '//'); // if the scheme is removed but not the hostname
 
 				// extract each type
 				$assets = [];
@@ -136,6 +137,8 @@ class assets {
 							// normalise URL
 							if (\mb_strpos($name, $prefix) === 0) {
 								$name = \mb_substr($name, \mb_strlen($prefix));
+							} elseif (\mb_strpos($name, $noscheme) === 0) {
+								$name = \mb_substr($name, \mb_strlen($noscheme));
 							}
 
 							// check if url is local

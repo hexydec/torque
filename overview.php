@@ -217,9 +217,14 @@ class overview extends assets {
 						'badge' => function (array $data, ?bool &$status = null) : ?string {
 							if ($data['assets']) {
 								$count = 0;
+								$groups = [];
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Fonts') {
-										$count++;
+										$name = \mb_strstr($item['name'], '.', true);
+										if (!\in_array($name, $groups, true)) {
+											$groups[] = $name;
+											$count++;
+										}
 									}
 								}
 								$status = $count < 10;
@@ -232,17 +237,27 @@ class overview extends assets {
 								$dir = \get_home_path();
 								$total = 0;
 								$count = 0;
+								$used = 0;
+								$groups = [];
 								$html = '<ul>';
 								foreach ($data['assets'] AS $item) {
 									if ($item['group'] === 'Fonts') {
+										$name = \mb_strstr($item['name'], '.', true);
 										$size = \file_exists($dir.$item['name']) ? \filesize($dir.$item['name']) : false;
-										$total += $size;
 										$count++;
-										$html .= '<li>'.\basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')</li>';
+
+										// only add up the used fonts
+										$isused = !\in_array($name, $groups, true);
+										if ($isused) {
+											$groups[] = $name;
+											$total += $size;
+											$used++;
+										}
+										$html .= '<li>'.($isused ? '<strong>' : '').\basename($item['name']).' ('.($size === false ? 'file not found' : \number_format($size).' bytes').')'.($isused ? '*</strong>' : '').'</li>';
 									}
 								}
 								$html .= '</ul>';
-								$html = '<p>Your site links to '.$count.' fonts. The total size of the assets is '.\number_format($total).' bytes'.($total > 100000 ? ', which is probably larger than it needs to be, but if multiple formats are specified then the user\'s browser will only download some of them' : '').'.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
+								$html = '<p>Your site links to '.$count.' fonts, of which '.$used.' will be used. The total size of the used assets is '.\number_format($total).' bytes (optimal*)'.($total > 100000 ? ', which is larger than it should be' : '').'.'.($count ? ' The linked assets are:' : '').'</p>'.$html;
 								$html .= '<p>Improve your font usage by using less fonts in your design, optimising the size of the fonts by using the WOFF2 format, and reducing the number of glyphs in the font file by building it with only common characters and discarding extra characters such as symbols.</p>
 								<p>If characters are on the page which do not have corresponding glyphs in the font file, a fallback font will be used, which can be specified in your CSS file.</p>';
 								return $html;
@@ -282,7 +297,7 @@ class overview extends assets {
 									}
 								}
 								$html .= '</ul>';
-								$html = '<p>Your site links to '.$count.' images'.($count > 20 ? ', which is a little high' : '').'. The total size of the assets is '.\number_format($total).' bytes'.($total > 1000000 ? ', which is probably larger than it needs to be' : '').'.</p>
+								$html = '<p>Your site links to '.$count.' images'.($count > 20 ? ', which is a little high' : '').'. The total size of the assets is '.\number_format($total).' bytes'.($total > 1000000 ? ', which is larger than it should be' : '').'.</p>
 								<p>Enabling lazy loading of images can help offset the download size and number of assets by only loading then when the user scrolls them into view.'.($html ? ' The largest images are:' : '').'</p>'.$html;
 								$html .= '<p>Images normally consume the largest percentage of download size and assets in most web pages, so reducing the number and optimising them can be an easy win to improve your websites performance.</p>';
 								return $html;
@@ -439,9 +454,10 @@ class overview extends assets {
 							$options = [
 								'allow' => 'Allowed',
 								'deny' => 'Disllowed',
-								'sameorigin' => 'Allowed only for own domain'
+								'sameorigin' => 'Allowed only for own domain',
+								'notenabled' => 'Not Enabled'
 							];
-							return $options[$data['x-iframe-options']] ?? 'Not Enabled';
+							return $options[$data['x-iframe-options'] ?? 'notenabled'] ?? $options['notenabled'];
 						},
 						'html' => '<p>Prevents other websites from embedding your website within an iframe. This is useful to stop other websites presenting your content as their own, or wrapping it with other content.</p>
 							<p>Note that this setting is obsoleted by the <code>frame-ancestors</code> part of a Content-Security-Policy (CSP).</p>'
