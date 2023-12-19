@@ -1,10 +1,10 @@
 === Torque - Optimise the transport of your Website ===
 Contributors: hexydec
 Tags: minify,minification,performance,security,optimization
-Requires at least: 
-Tested up to: 6.2
+Requires at least: 6.0
+Tested up to: 6.4.2
 Requires PHP: 8.0
-Stable tag: 0.7.2
+Stable tag: 0.7.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -72,7 +72,7 @@ It is recommended that you do not use this plugin with other minification plugin
 
 = What kind of compression can I expect from minification? =
 
-Depending on how compressible you content is you can expect ~10 - 15% compression of your page before gzip compression, after gzip you can expect ~5 - 10%.
+Depending on how compressible you content is you can expect ~10 - 15% compression of your page before gzip compression, after gzip you can expect ~ 5 - 10%.
 
 = How long does it take to minify my page? =
 
@@ -127,6 +127,22 @@ When you are happy that all domains and settings are set correctly, you can enab
 Preload works by notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page. For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.
 
 == Changelog ==
+
+= Version 0.7.4 =
+
+* The name of the app is not title case when Console Logging in app::drawStats()
+* Used PHP 8.0 property type definitions, and union return types where needed
+* Updated require calls in autoloaders to be used as a keyword and for the spl_autoload_register() call not to return a value
+* Fixed issue in csp::recommendations() where if the recommended URL was the base URL of the site, it should use 'self` instead
+* The minimum supported PHP version is now 8.0
+* Updated packages to latest versions
+
+= Version 0.7.3 =
+
+* Updated assets::getPage() to disable peer verification on localhost
+* Fixed issue in assets::getPageAssets() where it didn't detect URL's with the local hostname, but no scheme
+* Updated font config in overview::__construct() where the included fonts were registered as all the font formats, it now matches the names and reads only the first font of each group in the calculations
+* Updated packages to latest versions
 
 = Version 0.7.2 =
 

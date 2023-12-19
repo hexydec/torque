@@ -28,7 +28,7 @@ class packages {
 	 *
 	 * Note that external dependencies are only installed when install-external.php is available and the packages are not already bundled
 	 */
-	protected static $packages = [
+	protected static array $packages = [
 		'htmldoc' => [
 			'class' => 'hexydec\\html\\htmldoc',
 			'file' => 'https://github.com/hexydec/htmldoc/archive/refs/heads/master.zip',
@@ -61,14 +61,13 @@ class packages {
 	 * @return void
 	 */
 	public static function autoload() : void {
-		\spl_autoload_register(function (string $class) : bool {
+		\spl_autoload_register(function (string $class) : void {
 			$dir = self::INSTALLDIR;
 			foreach (self::$packages AS $item) {
 				if ($item['class'] === $class && \file_exists($dir.$item['autoload'])) {
-					return require($dir.$item['autoload']);
+					require $dir.$item['autoload'];
 				}
 			}
-			return false;
 		});
 	}
 }

@@ -11,12 +11,12 @@ class config extends packages {
 	/**
 	 * @var array $options A list of configuration options for the plugin
 	 */
-	protected $options = [];
+	protected array $options = [];
 
 	/**
 	 * @var array $config The plugin configuration
 	 */
-	protected $config = [
+	protected array $config = [
 		'output' => null, // can't be set here, see below
 		'csplog' => 'csp-reports.json'
 	];
@@ -26,7 +26,7 @@ class config extends packages {
 	 */
 	public function __construct() {
 		$url = \get_home_url().'/?notorque';
-		$dir = \dirname(\dirname(\dirname(__DIR__))).'/'; // can't use get_home_path() here
+		// $dir = \dirname(\dirname(\dirname(__DIR__))).'/'; // can't use get_home_path() here
 		$this->config['output'] = WP_CONTENT_DIR.'/uploads/torque/';
 
 		// build options
@@ -64,7 +64,7 @@ class config extends packages {
 						'type' => 'multiselect',
 						'description' => 'Select which CSS files to combine and minify',
 						'default' => [],
-						'datasource' => function () use ($url) {
+						'datasource' => function () use ($url) : array|false {
 							if (($assets = assets::getPageAssets($url)) !== false) {
 								$filtered = [];
 								foreach ($assets AS $item) {
@@ -76,14 +76,15 @@ class config extends packages {
 							}
 							return false;
 						},
-						'onsave' => function (array $value, array $options) {
+						'onsave' => function (array $value, array $options) : bool {
 							if ($value) {
 								$target =  $this->config['output'].\md5(\implode(',', $value)).'.css';
 								if (!assets::buildCss($value, $target, $options['minifystyle'] ? ($options['style'] ?? []) : null)) {
 									\add_settings_error(self::SLUG, self::SLUG, 'The combined CSS file could not be generated');
+									return false;
 								}
 							}
-							return false;
+							return true;
 						}
 					],
 					'minifyscript' => [
@@ -97,7 +98,7 @@ class config extends packages {
 						'type' => 'multiselect',
 						'description' => 'Select which Javascript files to combine and minify. Note that depending on the load order requirements of your inline and included scripts, this can break your Javascript. Check the console for errors after implementing.',
 						'default' => [],
-						'datasource' => function () use ($url) {
+						'datasource' => function () use ($url) : array|false {
 							if (($assets = assets::getPageAssets($url)) !== false) {
 								$filtered = [];
 								foreach ($assets AS $item) {
@@ -109,14 +110,15 @@ class config extends packages {
 							}
 							return false;
 						},
-						'onsave' => function (array $value, array $options) {
+						'onsave' => function (array $value, array $options) : bool {
 							if ($value) {
 								$target =  $this->config['output'].\md5(\implode(',', $value)).'.js';
 								if (!assets::buildJavascript($value, $target, $options['minifyscript'] ? ($options['script'] ?? []) : null)) {
 									\add_settings_error(self::SLUG, self::SLUG, 'The combined Javascript file could not be generated');
+									return false;
 								}
 							}
-							return false;
+							return true;
 						}
 					],
 					'lazyload' => [
@@ -619,7 +621,7 @@ class config extends packages {
 						'description' => 'Once you have implemented the recommendations, you should wipe the log to see how your new setup works',
 						'type' => 'checkbox',
 						'default' => false,
-						'onsave' => function (bool $value) {
+						'onsave' => function (bool $value) : bool {
 							if ($value) {
 								$report = $this->config['output'].$this->config['csplog'];
 								return \file_put_contents($report, '') !== false;
@@ -641,7 +643,7 @@ class config extends packages {
 						'description' => 'Select which assets to preload, make sure to pick assets that appear on EVERY page',
 						'type' => 'multiselect',
 						'default' => [],
-						'datasource' => function () use ($url) {
+						'datasource' => function () use ($url) : array|false {
 							if (($assets = assets::getPageAssets($url)) !== false) {
 				
 								// get style that are combined, to disallow in preload
@@ -750,7 +752,6 @@ class config extends packages {
 		$tabs = [];
 		$keys = [];
 		foreach ($this->options AS $key => $item) {
-			$tab = $item['tab'];
 			if (!\in_array($item['tab'], $tabs)) {
 				$tabs[] = $item['tab'];
 				$keys[] = $key;

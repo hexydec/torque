@@ -54,12 +54,16 @@ class csp {
 				}
 			}
 		}
-		return $key ? $csp[$key] ?? null : $csp;
+		return $key ? ($csp[$key] ?? null) : $csp;
 	}
 
-	public static function recommendations(string $file, string $key) {
+	public static function recommendations(string $file, string $key) : ?array {
 		if (($data = self::violations($file, $key)) !== null) {
-			$keywords = ["'unsafe-inline'", "'unsafe-eval'", 'data' => 'data:', 'self' => "'self"];
+
+			// define kewords
+			$keywords = ["'unsafe-inline'", "'unsafe-eval'", 'data' => 'data:', "'self'", 'blob:'];
+
+			// build recommendations
 			$recs = [];
 			foreach (\array_keys($data) AS $href) {
 				if (!\in_array($href, $keywords)) {
@@ -98,8 +102,20 @@ class csp {
 					}
 
 				// add keyword
-				} elseif (!in_array($href, $recs)) {
+				} elseif (!\in_array($href, $recs)) {
 					$recs[] = $href;
+				}
+			}
+
+			// build root URL
+			$self = (($_SERVER['HTTPS'] ?? 'off') !== 'off' ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'];
+			$folder = \str_replace('\\', '/', \mb_substr(\ABSPATH, \mb_strlen($_SERVER['DOCUMENT_ROOT'])));
+			$base = $self.$folder;
+
+			// replace root with 'self'
+			foreach ($recs AS $key => $item) {
+				if ($item === $base) {
+					$recs[$key] = "'self'";
 				}
 			}
 			return $recs;

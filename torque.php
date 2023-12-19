@@ -20,7 +20,7 @@ License URI:	https://github.com/hexydec/htmldoc/blob/master/LICENSE
 require(__DIR__.'/autoload.php');
 
 // activate the plugin
-\register_activation_hook(__FILE__, function () {
+\register_activation_hook(__FILE__, function () : void {
 
 	// from GitHub, download packages
 	if (\class_exists('\\hexydec\\torque\\installExternal')) {
@@ -34,14 +34,14 @@ require(__DIR__.'/autoload.php');
 });
 
 // install the admin menu
-\add_action('admin_menu', function () {
+\add_action('admin_menu', function () : void {
 	$obj = new admin();
 	$obj->update();
 	$obj->draw();
 });
 
 // load the app
-\add_action('wp_loaded', function () {
+\add_action('wp_loaded', function () : void {
 	$obj = new app();
 	$obj->optimise();
 });
@@ -50,13 +50,13 @@ require(__DIR__.'/autoload.php');
 \register_uninstall_hook(__FILE__, '\\hexydec\\torque\\install::uninstall');
 
 // rebuild files when a plugin is updated
-\add_action('upgrader_process_complete', function () {
+\add_action('upgrader_process_complete', function () : void {
 	assets::rebuildAssets();
 });
 
 // add rebuild command
 if (\class_exists('WP_CLI')) {
-	\WP_CLI::add_command('torque rebuild', function () {
+	\WP_CLI::add_command('torque rebuild', function () : bool {
 		return \hexydec\torque\assets::rebuildAssets();
 	}, [
 		'shortdesc' => 'Rebuild the configured combined CSS and Javascript files'

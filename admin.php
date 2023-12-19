@@ -9,9 +9,9 @@ namespace hexydec\torque;
 class admin extends config {
 
 	/**
-	 * @var $template Stores the name of the cirrently compiling template, see self::compile()
+	 * @var $template Stores the name of the currently compiling template, see self::compile()
 	 */
-	protected static $template;
+	protected static string $template;
 
 	/**
 	 * A function to compile an array into a template

@@ -386,7 +386,7 @@ class app extends config {
 
 		// render javascript
 		$console = [
-			'console.groupCollapsed("'.self::SLUG.' Stats");',
+			'console.groupCollapsed("'.\mb_convert_case(self::SLUG, MB_CASE_TITLE).' Stats");',
 			'console.table('.\json_encode($table).');',
 			'console.table('.\json_encode($sizes).');',
 			'console.groupEnd()'

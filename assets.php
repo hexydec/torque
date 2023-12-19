@@ -9,14 +9,14 @@ namespace hexydec\torque;
 class assets {
 
 	/**
-	 * @var $pages Caches the result of any page requests
+	 * @var array $pages Caches the result of any page requests
 	 */
-	protected static $pages = [];
+	protected static array $pages = [];
 
 	/**
-	 * @var $assets Caches the result any assets that have been gathered from a page
+	 * @var array$assets Caches the result any assets that have been gathered from a page
 	 */
-	protected static $assets = [];
+	protected static array $assets = [];
 
 	/**
 	 * Retrieves the requested page content, and optionally sends the response headers back

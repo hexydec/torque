@@ -11,7 +11,7 @@ class overview extends assets {
 	/**
 	 * @var array $config Stores the configuration for the overview page
 	 */
-	protected $config = [];
+	protected array $config = [];
 
 	/**
 	 * Specifies the configuration for the overview page

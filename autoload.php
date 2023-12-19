@@ -4,7 +4,7 @@
  *
  * @package hexydec/torque
  */
-\spl_autoload_register(function (string $class) : bool {
+\spl_autoload_register(function (string $class) : void {
 	$namespace = 'hexydec\\torque\\';
 	$classes = [
 		$namespace.'packages' => __DIR__.'/packages.php',
@@ -18,9 +18,8 @@
 		$namespace.'overview' => __DIR__.'/overview.php'
 	];
 	if (isset($classes[$class]) && \file_exists($classes[$class])) {
-		return require($classes[$class]);
+		require $classes[$class];
 	}
-	return false;
 });
 
 // autoload external packages
