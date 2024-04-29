@@ -9,8 +9,8 @@ namespace hexydec\torque;
 Plugin Name:	Torque - Optimise the transport of your Website
 Plugin URI:		https://github.com/hexydec/torque
 Description:	Make your Wordpress website noticably faster by optimising how it is delivered. Analyse your website's performance and security, minify and combine your assets, and configure an array of performance and security settings quickly and easily with this comprehensive plugin. Achieves the best compression of any minification plugin.
-Version:		0.7.3
-Requires PHP:	8.0
+Version:		0.7.5
+Requires PHP:	8.1
 Author:			Hexydec
 Author URI:		https://github.com/hexydec/
 License:		GPL

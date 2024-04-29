@@ -639,7 +639,7 @@ class config extends packages {
 				'html' => '<p>Notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page. For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.</p>',
 				'options' => [
 					'preload' => [
-						'label' => 'Push Assets',
+						'label' => 'Preload Assets',
 						'description' => 'Select which assets to preload, make sure to pick assets that appear on EVERY page',
 						'type' => 'multiselect',
 						'default' => [],

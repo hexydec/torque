@@ -2,9 +2,9 @@
 Contributors: hexydec
 Tags: minify,minification,performance,security,optimization
 Requires at least: 6.0
-Tested up to: 6.4.2
-Requires PHP: 8.0
-Stable tag: 0.7.4
+Tested up to: 6.5.2
+Requires PHP: 8.1
+Stable tag: 0.7.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 

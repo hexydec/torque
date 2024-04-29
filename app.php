@@ -74,8 +74,11 @@ class app extends config {
 	 */
 	public function optimise() : void {
 
+		// don't run if testing
+		if (isset($_GET['notorque'])) {
+
 		// are we going to minify the page?
-		if (!isset($_GET['notorque']) && ($options = \get_option(self::SLUG)) !== false && (!empty($options['admin']) || !\is_admin())) {
+		} elseif (($options = \get_option(self::SLUG)) !== false && (!empty($options['admin']) || !\is_admin())) {
 
 			// turn off default cache control header
 			if ($options['maxage'] ?? false) {
