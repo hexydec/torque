@@ -53,7 +53,7 @@ class admin extends config {
 
 		// register field controls
 		\register_setting(self::SLUG, self::SLUG, [
-			'sanitize_callback' => function (?array $value = null) : array {
+			'sanitize_callback' => function (?array $value = null) {
 
 				// check the form
 				$tab = $this->getCurrentTab();
