@@ -4,8 +4,6 @@
 
 A Wordpress plugin to optimise the transport of your website to the client. Reduce the load on your server and make your Wordpress website fly!
 
-**This project is currently beta, check your deployment thoroughly before deploying into production**
-
 ## Description
 
 Take advantage of best in class minification to squeeze every byte out of your HTML, combine this with the ability to optimally configure shared and client caches, and your website will not only be noticeably faster, your server will be under less load, and so you will be able to server more clients with your existing metal.
@@ -70,13 +68,13 @@ The best tool to use is Lighthouse, which is built into Blink based browsers suc
 - Select the "Lighthouse" tab
 - Click "Generate Report"
 
-Do this before you enable the plugin, and then again after you have enabled and configured the plugin. The performance metric should be higher with the plugin. You can also look at the Network tab in the developer console and see that the total download size and number of requests is lower (With combne and minify enabled).
+Do this before you enable the plugin, and then again after you have enabled and configured the plugin. The performance metric should be higher with the plugin. You can also look at the Network tab in the developer console and see that the total download size and number of requests is lower (With combine and minify enabled).
 
 ### I enabled minification and it broke my site
 
 Some advanced minification optimisations can cause issues with your website's layout, or break your Javascript depending on how your CSS/Javascript selectors are setup.
 
-For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=input]`, the selector will no longer match. See [HTMLdoc: Mitigating Side Effects of Minification](https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md) for solutions.
+For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=text]`, the selector will no longer match. See [HTMLdoc: Mitigating Side Effects of Minification](https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md) for solutions.
 
 ### Why is HTMLdoc best in class?
 

@@ -141,7 +141,7 @@ class app extends config {
 			if ($htmldoc && \class_exists('\\hexydec\\html\\htmldoc')) {
 
 				// create output buffer
-				\ob_start(function (string $html) use ($options) {
+				\ob_start(function (string $html) use ($options) : string {
 
 					// make sure the output is text/html, so we are not trying to minify javascript or something
 					foreach (\headers_list() AS $item) {
@@ -160,6 +160,8 @@ class app extends config {
 					// load from a variable
 					$timing['Parse'] = \microtime(true);
 					if ($doc->load($html, \mb_internal_encoding())) {
+						$dir = $this->config['output'];
+						$root = \dirname(__DIR__, 3).'/';
 
 						// add lazyload attributes
 						if (!empty($options['lazyload'])) {
@@ -167,26 +169,44 @@ class app extends config {
 						}
 
 						// combine style
+						$updatestyle = false;
 						if (!empty($options['combinestyle'])) {
-							$file = $this->config['output'].\md5(\implode(',', $options['combinestyle'])).'.css';
+							$file = $dir.\md5(\implode(',', $options['combinestyle'])).'.css';
 							if (\file_exists($file)) {
+								$lastupdate = \filemtime($file);
 								foreach ($options['combinestyle'] AS $item) {
+
+									// find and remove stylesheets
 									$style = $doc->find('link[rel=stylesheet][href*="'.$item.'"]');
 									if (($id = $style->attr("id")) !== null) {
 										$inline = \substr($id, 0, -3).'inline-css';
 										$doc->find('style[id="'.$inline.'"]')->remove();
 									}
 									$style->remove();
+
+									// set update flag
+									$updatestyle = $updatestyle ?: \filemtime($root.$item) > $lastupdate;
 								}
-								$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
+
+								// rebuild?
+								if ($updatestyle) {
+									\touch($file); // prevent race conditions
+									assets::buildCss($options['combinestyle'], $file, $options['minifystyle'] ? ($options['style'] ?? []) : null);
+									$lastupdate = \filemtime($file);
+								}
+
+								// include
+								$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.$lastupdate;
 								$doc->find('head')->append('<link rel="stylesheet" href="'.\esc_html($url).'" />');
 							}
 						}
 
 						// combine style
+						$updatescript = false;
 						if (!empty($options['combinescript'])) {
 							$file = $this->config['output'].\md5(\implode(',', $options['combinescript'])).'.js';
 							if (\file_exists($file)) {
+								$lastupdate = \filemtime($file);
 
 								// remove scripts we are combining
 								foreach ($options['combinescript'] AS $item) {
@@ -195,10 +215,20 @@ class app extends config {
 										$doc->find('script[id="'.$id.'-extra"]')->remove();
 									}
 									$script->remove();
+
+									// set update flag
+									$updatescript = $updatescript ?: \filemtime($root.$item) > $lastupdate;
+								}
+
+								// rebuild?
+								if ($updatescript) {
+									\touch($file); // prevent race conditions
+									assets::buildJavascript($options['combinescript'], $file, $options['minifyscript'] ? ($options['script'] ?? []) : null);
+									$lastupdate = \filemtime($file);
 								}
 
 								// append the combined file to the body tag
-								$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.\filemtime($file);
+								$url = \mb_substr($file, \mb_strlen($_SERVER['DOCUMENT_ROOT'])).'?'.$lastupdate;
 								$doc->find('body')->append('<script src="'.\esc_html($url).'"></script>');
 							}
 						}
@@ -216,7 +246,7 @@ class app extends config {
 						// show stats in the console
 						if (!empty($options['minifyhtml']) && ($options['stats'] ?? null) === \get_current_user_id()) {
 							$timing['Complete'] = \microtime(true);
-							$min .= $this->drawStats($html, $min, $timing);
+							$min .= $this->drawStats($html, $min, $timing, $updatestyle, $updatescript);
 						}
 						$html = $min;
 					}
@@ -288,7 +318,7 @@ class app extends config {
 			'default' => 'default-src',
 			'style' => 'style-src',
 			'script' => 'script-src',
-			'image' => 'image-src',
+			'image' => 'img-src',
 			'font' => 'font-src',
 			'media' => 'media-src',
 			'object' => 'object-src',
@@ -350,9 +380,11 @@ class app extends config {
 	 * @param string $input The input HTML
 	 * @param string $output The output HTML
 	 * @param array $timings An array of timings for each stage of the process
+	 * @param bool $updatestyle Whether the stylesheet was rebuilt
+	 * @param bool $updatescript Whether the javascript was rebuilt
 	 * @return string An HTML script tag containing Javascript to log the stats to the console
 	 */
-	protected function drawStats(string $input, string $output, array $timing) : string {
+	protected function drawStats(string $input, string $output, array $timing, bool $updatestyle = false, bool $updatescript = false) : string {
 
 		// calculate timings
 		$table = [
@@ -392,6 +424,8 @@ class app extends config {
 			'console.groupCollapsed("'.\mb_convert_case(self::SLUG, MB_CASE_TITLE).' Stats");',
 			'console.table('.\json_encode($table).');',
 			'console.table('.\json_encode($sizes).');',
+			$updatestyle ? 'console.log("Stylesheet was rebuilt");' : '',
+			$updatescript ? 'console.log("Javascript was rebuilt");' : '',
 			'console.groupEnd()'
 		];
 		return '<script>'.\implode('', $console).'</script>';

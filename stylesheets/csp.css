@@ -47,6 +47,7 @@
 
 .torque-csp__recommendations-add {
 	cursor: pointer;
+	text-decoration: none;
 }
 
 .torque-csp__recommendations-icon {

@@ -2,9 +2,9 @@
 Contributors: hexydec
 Tags: minify,minification,performance,security,optimization
 Requires at least: 6.0
-Tested up to: 6.5.2
+Tested up to: 6.7.1
 Requires PHP: 8.1
-Stable tag: 0.7.5
+Stable tag: 1.0.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -94,13 +94,13 @@ The best tool to use is Lighthouse, which is built into Blink based browsers suc
 * Select the "Lighthouse" tab
 * Click "Generate Report"
 
-Do this before you enable the plugin, and then again after you have enabled and configured the plugin. The performance metric should be higher with the plugin. You can also look at the Network tab in the developer console and see that the total download size and number of requests is lower (With combne and minify enabled).
+Do this before you enable the plugin, and then again after you have enabled and configured the plugin. The performance metric should be higher with the plugin. You can also look at the Network tab in the developer console and see that the total download size and number of requests is lower (With combine and minify enabled).
 
 = I enabled minification and it broke my site =
 
 Some advanced minification optimisations can cause issues with your website's layout, or break your Javascript depending on how your CSS/Javascript selectors are setup.
 
-For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=input]`, the selector will no longer match. See [HTMLdoc: Mitigating Side Effects of Minification](https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md) for solutions.
+For example, you can strip default attributes from your HTML such as `type="text"` on the `<input>` object. If you have a CSS or Javascript selector that relies on this attribute being there, such as `input[type=text]`, the selector will no longer match. See [HTMLdoc: Mitigating Side Effects of Minification](https://github.com/hexydec/htmldoc/blob/master/docs/mitigating-side-effects.md) for solutions.
 
 = Why is HTMLdoc best in class? =
 
@@ -127,6 +127,25 @@ When you are happy that all domains and settings are set correctly, you can enab
 Preload works by notifies the browser as soon as possible of assets it will need to load the page, this enables it to start downloading them sooner than if it discovered them on page. For example font files are normally linked from the stylesheet, so the browser has to download and parse the stylesheet before it can request them. By preloading, when it discovers that it needs those assets, they will already be downloading. Thus your website will load faster.
 
 == Changelog ==
+
+= Version 1.0.0 =
+
+* Tested with Wordpress version 6.7.1
+* Updated packages to latest versions
+* Stylesheets and Javascript will now be rebuilt on the fly if any included files have been updated since the output files were built
+* Fixed bug in app::getContentSecurityPolicy() where the directive img-src was mispelt as image-src
+* Fixed spelling mistake
+* Updated functions missing a return type
+* Fixed issue where the default value for method arguments was null, but this was not defined in the type hint
+* Moved to stable release
+* Updated readme.txt
+
+= Version 0.7.5 =
+
+* Tested with Wordpress version 6.5.2
+* The minimum supported PHP version is now 8.1
+* Updated packages to latest versions
+* Updated text in the Preload section
 
 = Version 0.7.4 =
 

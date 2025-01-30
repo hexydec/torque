@@ -236,7 +236,7 @@ class assets {
 	/**
 	 * Builds the requested CSS files into a single compressed file
 	 *
-	 * @param array $files An array of absolute file address to combine
+	 * @param array $files An array of absolute file addresses to combine
 	 * @param string $target The absolute file address of the target document
 	 * @param array $minify Minification option array or null to not minify at all
 	 * @return bool Whether the output file was created

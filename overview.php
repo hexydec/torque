@@ -353,7 +353,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Shared Cache Life',
-						'badge' => function (array $data, bool &$status = null) : string {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							if (!empty($data['cache-control']) && ($pos = \mb_strpos($data['cache-control'], 's-maxage=')) !== false) {
 								$pos += 9;
 								$end = \mb_strpos($data['cache-control'], ',', $pos);
@@ -371,7 +371,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Static Cache',
-						'badge' => function (array $data, bool &$status = null) : string {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							if (empty($data['x-cache-status']) && empty($data['cf-cache-status'])) {
 								$status = false;
 								return 'Not Configured';
@@ -418,7 +418,7 @@ class overview extends assets {
 				'params' => [
 					[
 						'title' => 'Transport Encrypted (HTTPS)',
-						'badge' => function (array $data, bool &$status = null) : string {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$status = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 							return $status ? 'Enabled' : 'Not Enabled';
 						},
@@ -429,7 +429,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Prevent MIME Type Sniffing',
-						'badge' => function (array $data, bool &$status = null) : string {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$status = ($data['x-content-type-options'] ?? '') === 'nosniff';
 							return $status ? 'Enabled' : 'Not Enabled';
 						},
@@ -439,7 +439,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Cross Site Scripting Protection',
-						'badge' => function (array $data, bool &$status = null) : string {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$status = !empty($data['x-xss-protection']);
 							return $status ? 'Enabled' : 'Not Enabled';
 						},
@@ -449,7 +449,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Website Embedding',
-						'badge' => function (array $data, bool &$status = null) : string {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$status = !empty($data['x-iframe-options']);
 							$options = [
 								'allow' => 'Allowed',
@@ -464,7 +464,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Content Security Policy',
-						'badge' => function (array $data, bool &$status = null) : string {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$status = !empty($data['content-security-policy']);
 							return $status ? 'Configured' : 'Not Configured';
 						},
@@ -474,7 +474,7 @@ class overview extends assets {
 					],
 					[
 						'title' => 'Force SSL',
-						'badge' => function (array $data, bool &$status = null) : string {
+						'badge' => function (array $data, ?bool &$status = null) : string {
 							$status = !empty($data['strict-transport-security']);
 							if ($status && \preg_match('/max-age=([0-9]++)/i', $data['strict-transport-security'] ?? '', $match)) {
 								$secs = \intval($match[1]);
@@ -530,8 +530,8 @@ class overview extends assets {
 	/**
 	 * Renders the overview data
 	 *
-	 * @param array $$config An array specifying what to render
-	 * @param array $$data An array containing data colected from the headers of the retrieved page
+	 * @param array $config An array specifying what to render
+	 * @param array $data An array containing data colected from the headers of the retrieved page
 	 * @return string HTML representing the input configuration and data
 	 */
 	protected function drawOverview(array $config, array $data) : string {

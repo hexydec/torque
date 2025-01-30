@@ -460,7 +460,7 @@ class config extends packages {
 					],
 					'etags' => [
 						'label' => 'Use Etags',
-						'description' => 'If a client reequests a page already in cache, if the page on the server is the same, tell the client to use the cache',
+						'description' => 'If a client requests a page already in cache, if the page on the server is the same, tell the client to use the cache',
 						'type' => 'checkbox',
 						'default' => true
 					]

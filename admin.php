@@ -53,7 +53,7 @@ class admin extends config {
 
 		// register field controls
 		\register_setting(self::SLUG, self::SLUG, [
-			'sanitize_callback' => function (array $value = null) {
+			'sanitize_callback' => function (?array $value = null) : array {
 
 				// check the form
 				$tab = $this->getCurrentTab();
@@ -128,7 +128,7 @@ class admin extends config {
 		$tab = $this->getCurrentTab();
 
 		// add admin page
-		\add_options_page('Torque - Optimise the transport of your website', 'Torque', 'manage_options', self::SLUG, function () use ($tab) {
+		\add_options_page('Torque - Optimise the transport of your website', 'Torque', 'manage_options', self::SLUG, function () use ($tab) : void {
 
 			// include styles
 			$css = \str_replace('\\', '/', __DIR__).'/stylesheets/csp.css';
@@ -183,7 +183,7 @@ class admin extends config {
 			if ($group['tab'] === $current) {
 
 				// add section
-				\add_settings_section(self::SLUG.'_options_'.$g, $group['name'], function () use ($g, $group, $allowed) {
+				\add_settings_section(self::SLUG.'_options_'.$g, $group['name'], function () use ($group, $allowed) : void {
 
 					// echo precompiled HTML or generate on the fly - not generated from user input
 					echo \wp_kses(($group['html'] instanceof \Closure ? $group['html']() : $group['html']), $allowed);
@@ -191,7 +191,7 @@ class admin extends config {
 
 				// add options
 				foreach ($group['options'] AS $key => $item) {
-					\add_settings_field($key, \esc_html($item['label']), function () use ($g, $key, $item, $options, $allowed) {
+					\add_settings_field($key, \esc_html($item['label']), function () use ($g, $key, $item, $options, $allowed) : void {
 
 						// before HTML
 						if (!empty($item['before'])) {
